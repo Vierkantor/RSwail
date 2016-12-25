@@ -1,0 +1,5 @@
+RSwail is an implementation of my perpetually-being-redeveloped-language Swail.
+
+This implementation is being written in RPython because it should automate most
+boring details of actually generating code, allowing us to just implement things
+and not worry about it being too slow.
