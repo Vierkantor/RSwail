@@ -1,12 +1,20 @@
 from rswail.value import Value
 
 class Instruction:
-	"""Contains constants for each instruction in the language."""
+	"""Contains constants for each opcode in the language.
+	
+	An instruction consists of an opcode and one argument.
+	The opcode determines what to do, the argument how to do it.
+	For example, PUSH_INT takes an int as argument and places it on the stack.
+	If the description doesn't mention its meaning, the argument is any valid value.
+	
+	TODO: decide how many bits we want to use for opcodes / arguments.
+	"""
 	NOP = 0 # Do nothing
 	HELLO = 1 # Print "Hello, World!"
-	PUSH_INT = 2 # Push pc+1 as Integer
+	PUSH_INT = 2 # Push <arg> as Integer
 	WRITE = 3 # Pop and print to stdout
-	JUMP = 4 # Unconditional, scopeless jump to block pc+1
+	JUMP = 4 # Unconditional, scopeless jump to block <arg>
 	
 	HCF = 255 # Halt and Catch Fire: should never be implemented
 
@@ -20,6 +28,55 @@ instruction_names = {
 		
 		"hcf": Instruction.HCF,
 }
+
+class TooManyItemsError(Exception):
+	"""Raised when a block contains too many local items, e.g. labels."""
+	pass
+
+class Block:
+	"""The smallest grouping of code, with labels and constants."""
+	def __init__(self):
+		"""Make a new empty block."""
+		
+		"""The opcodes of the instructions in the program.
+		
+		Should contain exactly as many items as self.arguments
+		"""
+		self.opcodes = []
+		
+		"""The arguments of the instructions in the program.
+		
+		Should contain exactly as many items as self.opcodes
+		"""
+		self.arguments = []
+		
+		"""The jump labels (i.e. block ids) used in this block.
+		
+		Every label should be used for an instruction.
+		"""
+		self.labels = []
+		
+		"""The constants (i.e. values that don't reference other values) used
+		in this block.
+		
+		Every constant should be used for an instruction.
+		"""
+		self.constants = []
+	
+	def add_instruction(self, opcode, argument):
+		"""Add an instruction to the end of this block."""
+		assert isinstance(opcode, int)
+		assert isinstance(argument, int)
+		self.opcodes.append(opcode)
+		self.arguments.append(argument)
+	
+	def add_label(self, label):
+		"""Add a label to this block.
+		
+		Returns the id of this label.
+		"""
+		self.labels.append(label)
+		return len(self.labels) - 1
 
 class Program:
 	"""Defines the full program, with blocks and initialization."""
@@ -40,16 +97,23 @@ class Program:
 
 	def new_block(self):
 		"""Make a new block and give its id."""
-		self.blocks.append([])
+		self.blocks.append(Block())
 		return len(self.blocks) - 1
 
-	def add_instruction(self, block_id, instruction):
+	def add_instruction(self, block_id, opcode, argument=0):
 		"""Add an instruction to the end of the given block.
 		
 		The block must have been initialized (e.g. using self.new_block).
+		
+		You should leave the argument empty only when the instruction doesn't
+		take an argument.
 		"""
-		self.blocks[block_id].append(instruction)
+		return self.blocks[block_id].add_instruction(opcode, argument)
+
+	def add_label(self, block_id, label):
+		"""Add a label to the given block."""
+		return self.blocks[block_id].add_label(label)
 
 	def get_block(self, block_id):
-		"""Get all instructions in the given block."""
+		"""Get the block object from its id."""
 		return self.blocks[block_id]

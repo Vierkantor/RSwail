@@ -26,8 +26,10 @@ def parse(program_contents):
 	for line in program_contents.split("\n"):
 		if line:
 			instruction, argument = line.split(" ")
-			program.add_instruction(current_block, instruction_names[instruction])
-			program.add_instruction(current_block, int(argument))
+			program.add_instruction(current_block,
+					instruction_names[instruction],
+					int(argument),
+			)
 	return program
 
 def mainloop(program, stack=None):
@@ -35,23 +37,30 @@ def mainloop(program, stack=None):
 		stack = []
 	pc = 0
 	scope = program.get_block(program.start_block)
-	while pc < len(scope):
+	while pc < len(scope.opcodes):
 		# tell JIT that we've merged multiple execution flows
 		jitdriver.jit_merge_point(program=program, scope=scope, pc=pc,
 				stack=stack)
 
-		instruction = scope[pc]
-		if instruction == Instruction.NOP:
+		opcode = scope.opcodes[pc]
+		argument = scope.arguments[pc]
+		if opcode == Instruction.NOP:
 			pass
-		elif instruction == Instruction.HELLO:
+		elif opcode == Instruction.HELLO:
 			print("Hello, World!")
-		elif instruction == Instruction.PUSH_INT:
-			stack.append(Integer(rbigint.fromint(scope[pc+1])))
-		elif instruction == Instruction.WRITE:
+		elif opcode == Instruction.PUSH_INT:
+			stack.append(Integer(rbigint.fromint(argument)))
+		elif opcode == Instruction.WRITE:
 			print(stack.pop())
+		elif opcode == Instruction.JUMP:
+			label = scope.labels[argument]
+			scope = program.get_block(label)
+			pc = 0
+			# don't increment the program counter!
+			continue
 		else:
 			raise NotImplementedError
-		pc += 2
+		pc += 1
 	return stack
 
 def run(fp):

@@ -23,8 +23,8 @@ def test_hello_instr(capsys):
 def test_push_int_instr():
 	"""Pushing an int should make the TOS a Swail integer."""
 	program = Program()
-	program.add_instruction(program.start_block, Instruction.PUSH_INT)
-	program.add_instruction(program.start_block, 37)
+	# push an arbitrary integer
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 37)
 
 	stack = mainloop(program)
 
@@ -38,3 +38,19 @@ def test_invalid_instr():
 
 	with pytest.raises(NotImplementedError):
 		mainloop(program)
+
+def test_jump_instr():
+	"""Jump to another part in the code."""
+	program = Program()
+	block1 = program.start_block
+	block2 = program.new_block()
+	label1 = program.add_label(block1, block2)
+	# go to the other block
+	program.add_instruction(block1, Instruction.JUMP, label1)
+	# and push an int
+	program.add_instruction(block2, Instruction.PUSH_INT, 37)
+
+	stack = mainloop(program)
+
+	tos = stack[-1]
+	assert tos.eq(37)
