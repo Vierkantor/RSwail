@@ -1,6 +1,6 @@
 from rpython.rtyper.lltypesystem.lltype import Array, Unsigned
 
-from rswail.value import Value
+from rswail.value import Unit, Value
 
 class Instruction:
 	"""Contains constants for each opcode in the language.
@@ -18,6 +18,9 @@ class Instruction:
 	WRITE = 3 # Pop and print to stdout
 	JUMP = 4 # Unconditional, scopeless jump to block <arg>
 	JUMP_IF = 5 # Pop, if truthy then JUMP else NOP
+	PUSH_CONST = 6 # Push constants[<arg>]
+	LOAD_LOCAL = 7 # Push locals[names[<arg>]]
+	STORE_LOCAL = 8 # Pop and write to locals[names[<arg>]]
 	
 	HCF = 255 # Halt and Catch Fire: should never be implemented
 
@@ -29,6 +32,9 @@ instruction_names = {
 		"write": Instruction.WRITE,
 		"jump": Instruction.JUMP,
 		"jump_if": Instruction.JUMP_IF,
+		"push_const": Instruction.PUSH_CONST,
+		"load_local": Instruction.LOAD_LOCAL,
+		"store_local": Instruction.STORE_LOCAL,
 		
 		"hcf": Instruction.HCF,
 }
@@ -58,14 +64,29 @@ class Block:
 		
 		Every label should be used for an instruction.
 		"""
-		self.labels = [0]
+		self.labels = [0] # TODO: better type hinting
 		
 		"""The constants (i.e. values that don't reference other values) used
 		in this block.
 		
 		Every constant should be used for an instruction.
 		"""
-		self.constants = []
+		self.constants = [Unit()] # TODO: better type hinting
+		
+		"""The names (i.e. unicode strings) used in this block.
+		
+		Each name should be used for an instruction.
+		"""
+		self.names = [u''] # TODO: better type hinting
+	
+	def add_constant(self, value):
+		"""Add a constant to this block.
+		
+		Returns the id of the constant.
+		"""
+		assert isinstance(value, Value)
+		self.constants.append(value)
+		return len(self.constants) - 1
 	
 	def add_instruction(self, opcode, argument):
 		"""Add an instruction to the end of this block."""
@@ -82,6 +103,15 @@ class Block:
 		assert isinstance(label, int)
 		self.labels.append(label)
 		return len(self.labels) - 1
+	
+	def add_name(self, name):
+		"""Add a name to this block.
+		
+		Returns the id of the name.
+		"""
+		assert isinstance(name, unicode)
+		self.names.append(name)
+		return len(self.names) - 1
 
 class Program:
 	"""Defines the full program, with blocks and initialization."""
@@ -105,6 +135,9 @@ class Program:
 		self.blocks.append(Block())
 		return len(self.blocks) - 1
 
+	def add_constant(self, block_id, value):
+		return self.blocks[block_id].add_constant(value)
+
 	def add_instruction(self, block_id, opcode, argument=0):
 		"""Add an instruction to the end of the given block.
 		
@@ -118,6 +151,10 @@ class Program:
 	def add_label(self, block_id, label):
 		"""Add a label to the given block."""
 		return self.blocks[block_id].add_label(label)
+
+	def add_name(self, block_id, name):
+		"""Add a name to the given block."""
+		return self.blocks[block_id].add_name(name)
 
 	def get_block(self, block_id):
 		"""Get the block object from its id."""

@@ -3,6 +3,7 @@
 import pytest
 
 from rswail.bytecode import Instruction, Program
+from rswail.value import Integer
 from target import mainloop
 
 def test_empty_program():
@@ -76,3 +77,16 @@ def test_jump_if_instr():
 
 	tos = stack[-1]
 	assert tos.eq(3)
+
+def test_load_const_instr():
+	"""Pushing a local constant should be equivalent to pushing an int."""
+	program = Program()
+	const = program.add_constant(program.start_block, Integer.from_int(37))
+	program.add_instruction(program.start_block, Instruction.PUSH_CONST, const)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 37)
+
+	stack = mainloop(program)
+
+	tos = stack[-1]
+	sos = stack[-2]
+	assert tos.eq(sos)

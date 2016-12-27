@@ -37,6 +37,17 @@ class Value:
 		"""
 		return self is other
 
+class Unit(Value):
+	"""The unit value, of which there is exactly one."""
+	def __init__(self):
+		Value.__init__(self, u'()')
+
+	def bool(self):
+		return False
+
+	def eq(self, other):
+		return isinstance(other, Unit)
+
 class Boolean(Value):
 	"""A boolean value, either True or False."""
 	def __init__(self, value):
@@ -56,6 +67,10 @@ class Integer(Value):
 
 		Value.__init__(self, unicode(value.str()))
 		self.value = value
+
+	@classmethod
+	def from_int(self, value):
+		return Integer(rbigint.fromint(value))
 
 	def bool(self):
 		"""Convert integer to boolean.

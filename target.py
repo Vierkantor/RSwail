@@ -70,6 +70,8 @@ def mainloop(program, stack=None):
 				pc = 0
 				# don't increment the program counter!
 				continue
+		elif opcode == Instruction.PUSH_CONST:
+			stack.append(scope.constants[argument])
 		else:
 			raise NotImplementedError
 		pc += 1
