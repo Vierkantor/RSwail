@@ -3,18 +3,14 @@
 import os
 import sys
 
+sys.path.append("pypy")
 from rpython.rlib.jit import JitDriver
+from rpython.rlib.rbigint import rbigint
 
-# TODO: make this nicer, via namespaces maybe?
-INSTR_NOP = 0 # Do nothing
-INSTR_HELLO = 1 # Hello, World!
+from rswail.bytecode import Instruction, Program, instruction_names
+from rswail.value import Integer
 
-word_to_instruction = {
-	"nop": INSTR_NOP,
-	"hello": INSTR_HELLO,
-}
-
-jitdriver = JitDriver(greens=['pc', 'program', 'extras'],
+jitdriver = JitDriver(greens=['pc', 'program', 'scope'],
 		reds=['stack'])
 def jitpolicy(driver):
 	from rpython.jit.codewriter.policy import JitPolicy
@@ -25,29 +21,38 @@ class ProgramExtras:
 		pass
 
 def parse(program_contents):
-	program = []
-	extras = ProgramExtras()
+	program = Program()
+	current_block = program.start_block
 	for line in program_contents.split("\n"):
 		if line:
-			program.append(word_to_instruction[line])
-	return program, extras
+			instruction, argument = line.split(" ")
+			program.add_instruction(current_block, instruction_names[instruction])
+			program.add_instruction(current_block, int(argument))
+	return program
 
-def mainloop(program, extras):
-	stack = []
+def mainloop(program, stack=None):
+	if stack is None:
+		stack = []
 	pc = 0
-	while pc < len(program):
+	scope = program.get_block(program.start_block)
+	while pc < len(scope):
 		# tell JIT that we've merged multiple execution flows
-		jitdriver.jit_merge_point(pc=pc, program=program, extras=extras,
+		jitdriver.jit_merge_point(program=program, scope=scope, pc=pc,
 				stack=stack)
 
-		instruction = program[pc]
-		if instruction == INSTR_NOP:
+		instruction = scope[pc]
+		if instruction == Instruction.NOP:
 			pass
-		elif instruction == INSTR_HELLO:
+		elif instruction == Instruction.HELLO:
 			print("Hello, World!")
+		elif instruction == Instruction.PUSH_INT:
+			stack.append(Integer(rbigint.fromint(scope[pc+1])))
+		elif instruction == Instruction.WRITE:
+			print(stack.pop())
 		else:
 			raise NotImplementedError
-		pc += 1
+		pc += 2
+	return stack
 
 def run(fp):
 	program_contents = ""
@@ -57,8 +62,8 @@ def run(fp):
 			break
 		program_contents += read
 	os.close(fp)
-	program, extras = parse(program_contents)
-	mainloop(program, extras)
+	program = parse(program_contents)
+	mainloop(program)
 
 def entry_point(argv):
 	try:
