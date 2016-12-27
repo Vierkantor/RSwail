@@ -53,11 +53,23 @@ def mainloop(program, stack=None):
 		elif opcode == Instruction.WRITE:
 			print(stack.pop())
 		elif opcode == Instruction.JUMP:
+			assert argument >= 0
 			label = scope.labels[argument]
+			assert isinstance(label, int)
 			scope = program.get_block(label)
 			pc = 0
 			# don't increment the program counter!
 			continue
+		elif opcode == Instruction.JUMP_IF:
+			tos = stack.pop()
+			assert argument >= 0
+			if tos.bool():
+				label = scope.labels[argument]
+				assert isinstance(label, int)
+				scope = program.get_block(label)
+				pc = 0
+				# don't increment the program counter!
+				continue
 		else:
 			raise NotImplementedError
 		pc += 1

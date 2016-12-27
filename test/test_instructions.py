@@ -54,3 +54,25 @@ def test_jump_instr():
 
 	tos = stack[-1]
 	assert tos.eq(37)
+
+def test_jump_if_instr():
+	"""Don't jump if there's a 0 and jump if there's a 1."""
+	program = Program()
+	block1 = program.start_block
+	block2 = program.new_block()
+	block3 = program.new_block()
+	label1_2 = program.add_label(block1, block2)
+	label1_3 = program.add_label(block1, block3)
+	# Since we push 1 first, we'll jump second
+	program.add_instruction(block1, Instruction.PUSH_INT, 1)
+	program.add_instruction(block1, Instruction.PUSH_INT, 0)
+	program.add_instruction(block1, Instruction.JUMP_IF, label1_2)
+	program.add_instruction(block1, Instruction.JUMP_IF, label1_3)
+	# mark where we've ended up
+	program.add_instruction(block2, Instruction.PUSH_INT, 2)
+	program.add_instruction(block3, Instruction.PUSH_INT, 3)
+
+	stack = mainloop(program)
+
+	tos = stack[-1]
+	assert tos.eq(3)

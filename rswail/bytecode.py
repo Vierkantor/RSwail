@@ -1,3 +1,5 @@
+from rpython.rtyper.lltypesystem.lltype import Array, Unsigned
+
 from rswail.value import Value
 
 class Instruction:
@@ -15,6 +17,7 @@ class Instruction:
 	PUSH_INT = 2 # Push <arg> as Integer
 	WRITE = 3 # Pop and print to stdout
 	JUMP = 4 # Unconditional, scopeless jump to block <arg>
+	JUMP_IF = 5 # Pop, if truthy then JUMP else NOP
 	
 	HCF = 255 # Halt and Catch Fire: should never be implemented
 
@@ -25,6 +28,7 @@ instruction_names = {
 		"push_int": Instruction.PUSH_INT,
 		"write": Instruction.WRITE,
 		"jump": Instruction.JUMP,
+		"jump_if": Instruction.JUMP_IF,
 		
 		"hcf": Instruction.HCF,
 }
@@ -54,7 +58,7 @@ class Block:
 		
 		Every label should be used for an instruction.
 		"""
-		self.labels = []
+		self.labels = [0]
 		
 		"""The constants (i.e. values that don't reference other values) used
 		in this block.
@@ -75,6 +79,7 @@ class Block:
 		
 		Returns the id of this label.
 		"""
+		assert isinstance(label, int)
 		self.labels.append(label)
 		return len(self.labels) - 1
 
