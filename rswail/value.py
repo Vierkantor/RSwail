@@ -54,7 +54,7 @@ class Integer(Value):
 		"""Create a new integer from a bigint value."""
 		assert isinstance(value, rbigint)
 
-		Value.__init__(self, unicode(str(value)))
+		Value.__init__(self, unicode(value.str()))
 		self.value = value
 
 	def bool(self):
