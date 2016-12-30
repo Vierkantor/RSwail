@@ -81,6 +81,18 @@ def mainloop(program, stack=None):
 			name = scope.names[argument]
 			assert isinstance(name, unicode)
 			local_vars[name] = stack.pop()
+		elif opcode == Instruction.POP:
+			if argument >= len(stack):
+				stack = []
+			else:
+				new_length = len(stack) - argument
+				# help rpython out with basic arithmetic
+				# so it knows the stack is nonempty
+				assert new_length > 0
+				stack = stack[:new_length]
+		elif opcode == Instruction.DUP:
+			assert 0 < argument < len(stack)
+			stack.append(stack[-argument])
 		else:
 			raise NotImplementedError
 		pc += 1

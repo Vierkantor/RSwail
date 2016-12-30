@@ -103,3 +103,61 @@ def test_store_load_local():
 
 	tos = stack[-1]
 	assert tos.eq(37)
+
+def test_pop_single():
+	"""Pop a single value from the stack."""
+	program = Program()
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 1)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 2)
+	program.add_instruction(program.start_block, Instruction.POP, 1)
+
+	stack = mainloop(program)
+	tos = stack[-1]
+
+	assert tos.eq(1)
+
+def test_pop_multiple():
+	"""Pop multiple values from the stack."""
+	program = Program()
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 1)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 2)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 3)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 4)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 5)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 6)
+	program.add_instruction(program.start_block, Instruction.POP, 4)
+
+	stack = mainloop(program)
+	tos = stack[-1]
+
+	assert tos.eq(2)
+
+def test_dup_top():
+	"""Duplicate the top value on the stack."""
+	program = Program()
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 1)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 2)
+	program.add_instruction(program.start_block, Instruction.DUP, 1)
+
+	stack = mainloop(program)
+	tos = stack[-1]
+	sos = stack[-2]
+
+	assert tos.eq(2)
+	assert sos.eq(2)
+
+def test_dup_deeper():
+	"""Duplicate a value which is stored deeper in the stack."""
+	program = Program()
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 1)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 2)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 3)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 4)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 5)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 6)
+	program.add_instruction(program.start_block, Instruction.DUP, 4)
+
+	stack = mainloop(program)
+	tos = stack[-1]
+
+	assert tos.eq(3)

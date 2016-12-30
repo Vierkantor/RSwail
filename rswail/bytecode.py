@@ -21,6 +21,8 @@ class Instruction:
 	PUSH_CONST = 6 # Push constants[<arg>]
 	LOAD_LOCAL = 7 # Push locals[names[<arg>]]
 	STORE_LOCAL = 8 # Pop and write to locals[names[<arg>]]
+	POP = 9 # Pop <arg> values from the stack (0 < arg)
+	DUP = 10 # Duplicate the <arg>th value on the stack (0 < arg < len(stack))
 	
 	HCF = 255 # Halt and Catch Fire: should never be implemented
 
@@ -35,6 +37,8 @@ instruction_names = {
 		"push_const": Instruction.PUSH_CONST,
 		"load_local": Instruction.LOAD_LOCAL,
 		"store_local": Instruction.STORE_LOCAL,
+		"pop": Instruction.POP,
+		"dup": Instruction.DUP,
 		
 		"hcf": Instruction.HCF,
 }
