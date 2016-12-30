@@ -90,3 +90,16 @@ def test_load_const_instr():
 	tos = stack[-1]
 	sos = stack[-2]
 	assert tos.eq(sos)
+
+def test_store_load_local():
+	"""Storing and loading a local value should do nothing."""
+	program = Program()
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 37)
+	var_id = program.add_name(program.start_block, u"var")
+	program.add_instruction(program.start_block, Instruction.STORE_LOCAL, var_id)
+	program.add_instruction(program.start_block, Instruction.LOAD_LOCAL, var_id)
+
+	stack = mainloop(program)
+
+	tos = stack[-1]
+	assert tos.eq(37)

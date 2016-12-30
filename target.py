@@ -11,7 +11,7 @@ from rswail.bytecode import Instruction, Program, instruction_names
 from rswail.value import Integer
 
 jitdriver = JitDriver(greens=['pc', 'program', 'scope'],
-		reds=['stack'])
+		reds=['stack', 'local_vars'])
 def jitpolicy(driver):
 	from rpython.jit.codewriter.policy import JitPolicy
 	return JitPolicy()
@@ -35,12 +35,13 @@ def parse(program_contents):
 def mainloop(program, stack=None):
 	if stack is None:
 		stack = []
+	local_vars = {}
 	pc = 0
 	scope = program.get_block(program.start_block)
 	while pc < len(scope.opcodes):
 		# tell JIT that we've merged multiple execution flows
 		jitdriver.jit_merge_point(program=program, scope=scope, pc=pc,
-				stack=stack)
+				stack=stack, local_vars=local_vars)
 
 		opcode = scope.opcodes[pc]
 		argument = scope.arguments[pc]
@@ -72,6 +73,14 @@ def mainloop(program, stack=None):
 				continue
 		elif opcode == Instruction.PUSH_CONST:
 			stack.append(scope.constants[argument])
+		elif opcode == Instruction.LOAD_LOCAL:
+			name = scope.names[argument]
+			assert isinstance(name, unicode)
+			stack.append(local_vars[name])
+		elif opcode == Instruction.STORE_LOCAL:
+			name = scope.names[argument]
+			assert isinstance(name, unicode)
+			local_vars[name] = stack.pop()
 		else:
 			raise NotImplementedError
 		pc += 1
