@@ -1,6 +1,6 @@
 from rswail.bytecode import Instruction
 from rswail.struct import Struct, construct
-from rswail.value import Value
+from rswail.value import Integer, Value
 
 statement = Struct(u"statement", {
 	u"declaration": [u"header", u"name", u"args", u"body"],
@@ -20,6 +20,11 @@ def expr_base_value(value):
 	return construct(expression, u"base_value", value)
 def expr_apply(function, *args):
 	return construct(expression, u"apply", function, args)
+def expr_from_int(value):
+	assert isinstance(value, int)
+	return expr_base_value(Integer.from_int(value))
+def stmt_expression(expr):
+	return construct(statement, u"expression", expr)
 
 def compile_statement(program, block_id, stmt):
 	"""Add code to implement the statement, to the given block.
@@ -67,7 +72,12 @@ def compile_expression(program, block_id, expr):
 		program.add_instruction(block_id, Instruction.LOAD_LOCAL, name_id)
 		return block_id
 	elif expr.member.name == u"apply":
-		raise NotImplementedError
+		(function_expr, arg_exprs) = expr.values
+		block_id = compile_expression(program, block_id, function_expr)
+		for arg_expr in arg_exprs:
+			block_id = compile_expression(program, block_id, arg_expr)
+		program.add_instruction(block_id, Instruction.CALL, len(arg_exprs))
+		return block_id
 	elif expr.member.name == u"base_value":
 		(value,) = expr.values
 		value_id = program.add_constant(block_id, value)

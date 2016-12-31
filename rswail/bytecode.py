@@ -23,6 +23,7 @@ class Instruction:
 	STORE_LOCAL = 8 # Pop and write to locals[names[<arg>]]
 	POP = 9 # Pop <arg> values from the stack (0 < arg)
 	DUP = 10 # Duplicate the <arg>th value on the stack (0 < arg < len(stack))
+	CALL = 11 # Pop <arg> arguments, pop function, call function with arguments
 	
 	HCF = 255 # Halt and Catch Fire: should never be implemented
 
@@ -39,6 +40,7 @@ instruction_names = {
 		"store_local": Instruction.STORE_LOCAL,
 		"pop": Instruction.POP,
 		"dup": Instruction.DUP,
+		"call": Instruction.CALL,
 		
 		"hcf": Instruction.HCF,
 }

@@ -3,6 +3,7 @@
 import pytest
 
 from rswail.bytecode import Instruction, Program
+from rswail.function import NativeFunction
 from rswail.value import Integer
 from target import mainloop
 
@@ -161,3 +162,44 @@ def test_dup_deeper():
 	tos = stack[-1]
 
 	assert tos.eq(3)
+
+def test_call_noargs():
+	"""Call a function without any arguments."""
+	program = Program()
+	def func(args):
+		assert len(args) == 0
+		return Integer.from_int(37)
+	func_id = program.add_constant(program.start_block, NativeFunction(u"func", func))
+	program.add_instruction(program.start_block, Instruction.PUSH_CONST, func_id)
+	program.add_instruction(program.start_block, Instruction.CALL, 0)
+
+	stack = mainloop(program)
+	tos = stack[-1]
+
+	assert tos.eq(37)
+
+def test_call_args():
+	"""Call a function with a given number of arguments."""
+	program = Program()
+	def func(args):
+		assert len(args) == 5
+		assert args[0].eq(1)
+		assert args[1].eq(2)
+		assert args[2].eq(3)
+		assert args[3].eq(4)
+		assert args[4].eq(5)
+		return Integer.from_int(37)
+	func_id = program.add_constant(program.start_block, NativeFunction(u"func", func))
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 6)
+	program.add_instruction(program.start_block, Instruction.PUSH_CONST, func_id)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 1)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 2)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 3)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 4)
+	program.add_instruction(program.start_block, Instruction.PUSH_INT, 5)
+	program.add_instruction(program.start_block, Instruction.CALL, 5)
+
+	stack = mainloop(program)
+	tos = stack[-1]
+
+	assert tos.eq(37)

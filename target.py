@@ -8,6 +8,7 @@ from rpython.rlib.jit import JitDriver
 from rpython.rlib.rbigint import rbigint
 
 from rswail.bytecode import Instruction, Program, instruction_names
+from rswail.function import Function
 from rswail.value import Integer
 
 jitdriver = JitDriver(greens=['pc', 'program', 'scope'],
@@ -93,6 +94,14 @@ def mainloop(program, stack=None):
 		elif opcode == Instruction.DUP:
 			assert 0 < argument < len(stack)
 			stack.append(stack[-argument])
+		elif opcode == Instruction.CALL:
+			function_pos = len(stack) - argument - 1
+			assert 0 <= function_pos < len(stack)
+			function = stack[function_pos]
+			arguments = stack[function_pos+1:]
+			stack = stack[:function_pos]
+			assert isinstance(function, Function)
+			stack.append(function.call(arguments))
 		else:
 			raise NotImplementedError
 		pc += 1
