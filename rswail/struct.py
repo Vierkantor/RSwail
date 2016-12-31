@@ -2,19 +2,20 @@ from rswail.value import Value
 
 class Struct(Value):
 	def __init__(self, name, member_dict):
+		# initialize members first so we can't overwrite it
+		self.members = {}
 		Value.__init__(self, name)
-		members = []
 		for key, value in member_dict.items():
-			members.append(StructMember(self, key, value))
-		self.members = members
-		self.set(u"members", members)
+			member = StructMember(self, key, value)
+			self.members[key] = member
+		self.set(u"members", self.members)
 	def get(self, key):
-		assert isinstance(unicode, key)
+		assert isinstance(key, unicode)
 		if key in self.members:
 			return self.members[key]
 		return Value.get(self, key)
 	def set(self, key, value):
-		assert isinstance(unicode, key)
+		assert isinstance(key, unicode)
 		if key in self.members:
 			self.members[key] = value
 		else:
@@ -37,13 +38,12 @@ class StructInstance(Value):
 		self.set(u"member", member)
 		self.set(u"values", values)
 
-statement = Struct(u"statement", {
-	u"declaration": [u"header", u"name", u"args", u"body"],
-	u"expression": [u"expr"],
-})
-
-expression = Struct(u"expression", {
-	u"name_access": [u"name"],
-	u"apply": [u"func", u"args"],
-	u"base_value": [u"value"],
-})
+def construct(struct, member_name, *args):
+	"""Make a new StructInstance.
+	
+	The member_name is the (canonical) name of the struct's instance,
+	attributes that resolve to a member are ignored.
+	"""
+	assert isinstance(struct, Struct)
+	assert isinstance(member_name, unicode)
+	return StructInstance(member_name, struct.members[member_name], args)
