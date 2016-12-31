@@ -13,13 +13,10 @@ from rswail.value import Integer
 
 jitdriver = JitDriver(greens=['pc', 'program', 'scope'],
 		reds=['stack', 'local_vars'])
-def jitpolicy(driver):
+
+def jitpolicy(driver): # pragma: no cover
 	from rpython.jit.codewriter.policy import JitPolicy
 	return JitPolicy()
-
-class ProgramExtras:
-	def __init__(self):
-		pass
 
 def parse(program_contents):
 	program = Program()
@@ -34,6 +31,13 @@ def parse(program_contents):
 	return program
 
 def mainloop(program, stack=None):
+	"""Run the program from its starting block.
+	
+	If the stack isn't left None, it should support .append() and .pop() methods.
+	(e.g. a regular Python list would work)
+	
+	Returns the stack after execution.
+	"""
 	if stack is None:
 		stack = []
 	local_vars = {}

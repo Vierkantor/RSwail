@@ -11,6 +11,12 @@ def test_empty_program():
 	"""The main loop should accept empty programs."""
 	mainloop(Program())
 
+def test_nop_program():
+	"""A program with a NOP instruction should also work."""
+	program = Program()
+	program.add_instruction(program.start_block, Instruction.NOP)
+	mainloop(program)
+
 def test_hello_instr(capsys):
 	"""The hello world instruction should output exactly this string:
 		u"Hello, World!\n"
@@ -65,42 +71,59 @@ def test_jump_if_instr():
 	block3 = program.new_block()
 	label1_2 = program.add_label(block1, block2)
 	label1_3 = program.add_label(block1, block3)
-	# Since we push 1 first, we'll jump second
-	program.add_instruction(block1, Instruction.PUSH_INT, 1)
-	program.add_instruction(block1, Instruction.PUSH_INT, 0)
 	program.add_instruction(block1, Instruction.JUMP_IF, label1_2)
 	program.add_instruction(block1, Instruction.JUMP_IF, label1_3)
 	# mark where we've ended up
 	program.add_instruction(block2, Instruction.PUSH_INT, 2)
 	program.add_instruction(block3, Instruction.PUSH_INT, 3)
 
-	stack = mainloop(program)
+	# Since 0 is on top, we jump second.
+	stack = mainloop(program, [Integer.from_int(1), Integer.from_int(0)])
 
 	tos = stack[-1]
 	assert tos.eq(3)
 
-def test_load_const_instr():
-	"""Pushing a local constant should be equivalent to pushing an int."""
+def test_push_const_instr():
+	"""Push an integer on the stack as a local constant.
+	
+	Checks that this is equivalent to already having it on the stack, and
+	to directly pushing it onto the stack.
+	"""
 	program = Program()
 	const = program.add_constant(program.start_block, Integer.from_int(37))
 	program.add_instruction(program.start_block, Instruction.PUSH_CONST, const)
 	program.add_instruction(program.start_block, Instruction.PUSH_INT, 37)
 
-	stack = mainloop(program)
+	stack = mainloop(program, [Integer.from_int(37)])
 
 	tos = stack[-1]
 	sos = stack[-2]
+	dos = stack[-3]
 	assert tos.eq(sos)
+	assert tos.eq(dos)
+
+def test_write_instr(capsys):
+	"""Test that writing the TOS to stdout works."""
+	program = Program()
+	value = Integer.from_int(37)
+	const = program.add_constant(program.start_block, value)
+	program.add_instruction(program.start_block, Instruction.PUSH_CONST, const)
+	program.add_instruction(program.start_block, Instruction.WRITE)
+
+	mainloop(program)
+	out, err = capsys.readouterr()
+	# we should get a representation of the int and a newline
+	assert out == repr(value) + "\n"
+
 
 def test_store_load_local():
 	"""Storing and loading a local value should do nothing."""
 	program = Program()
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 37)
 	var_id = program.add_name(program.start_block, u"var")
 	program.add_instruction(program.start_block, Instruction.STORE_LOCAL, var_id)
 	program.add_instruction(program.start_block, Instruction.LOAD_LOCAL, var_id)
 
-	stack = mainloop(program)
+	stack = mainloop(program, [Integer.from_int(37)])
 
 	tos = stack[-1]
 	assert tos.eq(37)
@@ -108,11 +131,9 @@ def test_store_load_local():
 def test_pop_single():
 	"""Pop a single value from the stack."""
 	program = Program()
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 1)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 2)
 	program.add_instruction(program.start_block, Instruction.POP, 1)
 
-	stack = mainloop(program)
+	stack = mainloop(program, [Integer.from_int(1), Integer.from_int(2)])
 	tos = stack[-1]
 
 	assert tos.eq(1)
@@ -120,27 +141,33 @@ def test_pop_single():
 def test_pop_multiple():
 	"""Pop multiple values from the stack."""
 	program = Program()
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 1)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 2)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 3)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 4)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 5)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 6)
 	program.add_instruction(program.start_block, Instruction.POP, 4)
 
-	stack = mainloop(program)
+	stack = []
+	for i in range(1, 7):
+		stack.append(Integer.from_int(i))
+
+	stack = mainloop(program, stack)
 	tos = stack[-1]
 
+	# 1 2 3 4 5 6 -> 1 2
 	assert tos.eq(2)
+
+def test_pop_overflow():
+	"""Popping more values than the stack contains should give an empty stack."""
+	program = Program()
+	program.add_instruction(program.start_block, Instruction.POP, 4)
+
+	stack = mainloop(program, [Integer.from_int(1), Integer.from_int(2)])
+
+	assert len(stack) == 0
 
 def test_dup_top():
 	"""Duplicate the top value on the stack."""
 	program = Program()
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 1)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 2)
 	program.add_instruction(program.start_block, Instruction.DUP, 1)
 
-	stack = mainloop(program)
+	stack = mainloop(program, [Integer.from_int(1), Integer.from_int(2)])
 	tos = stack[-1]
 	sos = stack[-2]
 
@@ -150,15 +177,13 @@ def test_dup_top():
 def test_dup_deeper():
 	"""Duplicate a value which is stored deeper in the stack."""
 	program = Program()
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 1)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 2)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 3)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 4)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 5)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 6)
 	program.add_instruction(program.start_block, Instruction.DUP, 4)
 
-	stack = mainloop(program)
+	stack = []
+	for i in range(1, 7):
+		stack.append(Integer.from_int(i))
+
+	stack = mainloop(program, stack)
 	tos = stack[-1]
 
 	assert tos.eq(3)
