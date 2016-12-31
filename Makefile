@@ -11,7 +11,7 @@ test: swail
 # Tests that should be run before the full compilation that includes JIT.
 .PHONY: test-interpreted
 test-interpreted:
-	${PYTEST2}
+	${PYTEST2} --cov=.
 	${PYTHON2} target.py tests.swa
 .PHONY: test-nojit
 test-nojit: swail-nojit
