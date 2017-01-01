@@ -23,6 +23,8 @@ def expr_apply(function, *args):
 def expr_from_int(value):
 	assert isinstance(value, int)
 	return expr_base_value(Integer.from_int(value))
+def stmt_declaration(header, name, args, body):
+	return construct(statement, u"declaration", header, name, args, body)
 def stmt_expression(expr):
 	return construct(statement, u"expression", expr)
 

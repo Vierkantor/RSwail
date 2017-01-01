@@ -2,7 +2,7 @@ from rpython.rlib.parsing.deterministic import LexerError
 from rpython.rlib.parsing.ebnfparse import parse_ebnf, make_parse_function
 from rpython.rlib.parsing.parsing import ParseError
 
-from rswail.parser import lexed_to_nodes
+from rswail.parser import lexed_to_nodes, nodes_to_ast
 
 import pytest
 
@@ -11,10 +11,10 @@ def test_parser_sanity():
 	
 	The current default version of RPython doesn't like placing a * symbol in []
 	but we'd like to use that combination for the newlines between statements
-	so we have to make sure the version we're building against does.
+	so we would like the version we're building against does.
 	"""
 	regexes, rules, ToAST = parse_ebnf("""
-		test: ["foo"*] "bar";
+		test: ["foo"*] "bar" EOF;
 	""")
 	parse_func = make_parse_function(regexes, rules, eof=True)
 	parse_func("bar")
@@ -29,7 +29,9 @@ def test_parser_sanity():
 
 def test_empty_file():
 	"""Parsing an empty file should succeed and give an empty program."""
-	lexed_to_nodes("\n")
+	assert nodes_to_ast(lexed_to_nodes("")) == []
+	assert nodes_to_ast(lexed_to_nodes("\n")) == []
+	assert nodes_to_ast(lexed_to_nodes("\n\n\n")) == []
 
 def test_simple_statements():
 	"""Parse a few simple statements."""
@@ -50,15 +52,20 @@ def test_simple_statements():
 	]
 	for statement in statements:
 		lexed_to_nodes(statement)
-	lexed_to_nodes("\n".join(statements))
+
+	full_code = "".join(statements)
+	nodes = lexed_to_nodes(full_code)
+	ast = nodes_to_ast(nodes)
 
 def test_statement_with_block():
 	"""Parse statements with a block."""
 	statements = [
 			"def foo():\n<indent>\tpass\n<dedent>\t\n",
-			"def foo():\n<indent>\tdef bar():\n<indent>\tpass\n<dedent>\t<dedent>\t\n"
-			"def foo():\n<indent>\tdef bar():\n<indent>\tpass\n<dedent>\t\n<dedent>\t\n"
+			"def foo():\n<indent>\tdef bar():\n<indent>\tpass\n<dedent>\t\n<dedent>\t\n",
 	]
 	for statement in statements:
 		lexed_to_nodes(statement)
-	lexed_to_nodes("\n".join(statements))
+
+	full_code = "\n".join(statements)
+	nodes = lexed_to_nodes(full_code)
+	ast = nodes_to_ast(nodes)

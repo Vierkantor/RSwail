@@ -72,6 +72,10 @@ class Integer(Value):
 	def from_int(self, value):
 		return Integer(rbigint.fromint(value))
 
+	@classmethod
+	def from_decimal(self, value):
+		return Integer(rbigint.fromdecimalstr(value))
+
 	def bool(self):
 		"""Convert integer to boolean.
 		
