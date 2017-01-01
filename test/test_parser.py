@@ -2,6 +2,7 @@ from rpython.rlib.parsing.deterministic import LexerError
 from rpython.rlib.parsing.ebnfparse import parse_ebnf, make_parse_function
 from rpython.rlib.parsing.parsing import ParseError
 
+from rswail.ast import statement, expression
 from rswail.parser import lexed_to_nodes, nodes_to_ast, swail_parser
 
 import pytest
@@ -99,3 +100,13 @@ def test_parser():
 
 	full_code = "".join(statements)
 	swail_parser(full_code)
+
+def test_general_name_unicode():
+	"""Parsing a general name should give a list with unicode components."""
+	stmts = swail_parser("general.name.with.dots\n")
+	assert len(stmts) == 1
+	stmt = stmts[0]
+	assert stmt.member == statement.members[u"expression"]
+	expr = stmt.values[0]
+	assert expr.member == expression.members[u"name_access"]
+	assert expr.values[0] == [u'general', u'name', u'with', u'dots']

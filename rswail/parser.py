@@ -140,7 +140,8 @@ class NodesToASTVisitor(RPythonVisitor):
 		return result
 	def visit__star_symbol5(self, node):
 		assert len(node.children) in [2, 3]
-		result = [self.dispatch(node.children[0]).token.source]
+		# TODO: support other encodings?
+		result = [self.dispatch(node.children[0]).token.source.decode("utf-8")]
 		if len(node.children) == 3:
 			assert node.children[2].symbol == "_star_symbol5"
 			result.extend(self.dispatch(node.children[2]))
@@ -202,7 +203,8 @@ class NodesToASTVisitor(RPythonVisitor):
 		else:
 			result = []
 		assert node.children[-1].symbol == "NAME"
-		result.append(node.children[-1].token.source)
+		# TODO: support other encodings?
+		result.append(node.children[-1].token.source.decode("utf-8"))
 		return result
 
 def nodes_to_ast(program_nodes):
