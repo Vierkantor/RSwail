@@ -44,9 +44,47 @@ all the boring details.
 """
 lexed_to_nodes = make_parse_function(regexes, rules, eof=True)
 
-# TODO: automatic lexing
 def swail_lexer(program_code):
-	raise NotImplementedError
+	"""To make parsing a bit easier, we first convert indentation to explicit tokens."""
+	indent_level = 0
+	char = '\n'
+	source = iter(program_code)
+	eof = False
+	# we break from the loop when there are no more characters in the file
+	while not eof:
+		if char == '\n':
+			line_indent = 0
+			# count the indentation on this line
+			while True:
+				try:
+					char = next(source)
+				except StopIteration:
+					eof = True
+					break
+				if char != '\t':
+					break
+				line_indent += 1
+			# and print that amount of indent/dedent tokens
+			for i in range(indent_level, line_indent):
+				for c in "<indent>\t":
+					yield c
+			for i in range(line_indent, indent_level):
+				# TODO: remove the \n at the end
+				# workaround for ending each statement with newlines
+				for c in "<dedent>\t\n":
+					yield c
+			indent_level = line_indent
+		else:
+			try:
+				char = next(source)
+			except StopIteration:
+				break
+		yield char
+
+	yield "\n"
+	for i in range(0, indent_level):
+		for c in "<dedent>\t\n":
+			yield c
 
 class NodesToASTVisitor(RPythonVisitor):
 	"""Converts the nodes from the parser generator into a Swail AST.
@@ -183,6 +221,7 @@ def swail_parser(program_code):
 	
 	This is probably the function you want to use during execution.
 	"""
-	lexed = swail_lexer(program_code)
+	# TODO directly produce rlib.parsing tokens
+	lexed = "".join(swail_lexer(program_code))
 	nodes = lexed_to_nodes(lexed)
 	return nodes_to_ast(nodes)
