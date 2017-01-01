@@ -106,6 +106,12 @@ class NodesToASTVisitor(RPythonVisitor):
 		raise NotImplementedError
 
 	# TODO: get rid of these fragile cases
+	def visit___arg_list_rest_0_0(self, node):
+		assert len(node.children) in [1, 2]
+		if len(node.children) == 1:
+			return []
+		else:
+			return self.dispatch(node.children[0])
 	def visit___file_rest_0_0(self, node):
 		assert len(node.children) in [1, 2]
 		if len(node.children) == 1:
@@ -115,6 +121,9 @@ class NodesToASTVisitor(RPythonVisitor):
 	def visit__maybe_symbol2(self, node):
 		assert len(node.children) == 3
 		return self.dispatch(node.children[2])
+	def visit__maybe_symbol4(self, node):
+		assert len(node.children) == 1
+		return [self.dispatch(node.children[0])]
 	def visit__plus_symbol0(self, node):
 		return None
 	def visit__plus_symbol2(self, node):
@@ -182,20 +191,26 @@ class NodesToASTVisitor(RPythonVisitor):
 		return expr_name_access(self.dispatch(node.children[0]))
 	def visit_apply(self, node):
 		assert len(node.children) == 2
-		return expr_apply(self.dispatch(node.children[0]), self.dispatch(node.children[1]))
+		return expr_apply(self.dispatch(node.children[0]), *self.dispatch(node.children[1]))
 	def visit_base_value(self, node):
 		assert len(node.children) == 1
 		value_symbol = node.children[0]
 		if value_symbol.symbol == "LITERAL_INT":
-			return Integer.from_decimal(value_symbol.token.source)
+			return expr_base_value(Integer.from_decimal(value_symbol.token.source))
 		else:
 			raise NotImplementedError
 
 	def visit_arg_list(self, node):
-		assert len(node.children) >= 2
-		# strip out the parentheses
-		args = node.children[1:len(node.children)-1]
-		return list(map(self.dispatch, args))
+		assert len(node.children) in [2, 3]
+		if len(node.children) == 2:
+			# either 0 or 1 arguments in the list
+			assert node.children[1].symbol == "__arg_list_rest_0_0"
+			return self.dispatch(node.children[1])
+		else:
+			# at least 2 elements in the list
+			result = self.dispatch(node.children[1])
+			result.extend(self.dispatch(node.children[2]))
+			return result
 	def visit_general_name(self, node):
 		assert len(node.children) in [1, 2]
 		if len(node.children) == 2:

@@ -110,3 +110,20 @@ def test_general_name_unicode():
 	expr = stmt.values[0]
 	assert expr.member == expression.members[u"name_access"]
 	assert expr.values[0] == [u'general', u'name', u'with', u'dots']
+
+def test_arg_list():
+	"""Parsing an argument list should give a list of expressions."""
+	stmts = swail_parser("call(arg1, arg2)\n")
+	assert len(stmts) == 1
+	stmt = stmts[0]
+	assert stmt.member == statement.members[u"expression"]
+	expr = stmt.values[0]
+	assert expr.member == expression.members[u"apply"]
+	assert expr.values[0].member == expression.members[u"name_access"]
+	assert expr.values[0].values[0] == [u'call']
+	assert len(expr.values[1]) == 2
+	for arg in expr.values[1]:
+		assert arg.member == expression.members[u"name_access"]
+		assert isinstance(arg.values[0], list)
+		for name in arg.values[0]:
+			assert isinstance(name, unicode)
