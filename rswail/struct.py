@@ -38,7 +38,7 @@ class StructInstance(Value):
 		self.set(u"member", member)
 		self.set(u"values", values)
 	def __repr__(self):
-		return repr(self.member) + "(" + ", ".join(self.values) + ")"
+		return repr(self.member) + repr(self.values)
 
 def construct(struct, member_name, *args):
 	"""Make a new StructInstance.
