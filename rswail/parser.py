@@ -51,6 +51,7 @@ def swail_lexer(program_code):
 	char = '\n'
 	source = iter(program_code)
 	eof = False
+	result = []
 	# we break from the loop when there are no more characters in the file
 	while not eof:
 		if char == '\n':
@@ -67,25 +68,25 @@ def swail_lexer(program_code):
 				line_indent += 1
 			# and print that amount of indent/dedent tokens
 			for i in range(indent_level, line_indent):
-				for c in "<indent>\t":
-					yield c
+				result.append("<indent>\t")
 			for i in range(line_indent, indent_level):
 				# TODO: remove the \n at the end
 				# workaround for ending each statement with newlines
-				for c in "<dedent>\t\n":
-					yield c
+				result.append("<dedent>\t\n")
 			indent_level = line_indent
 		else:
 			try:
 				char = next(source)
 			except StopIteration:
 				break
-		yield char
-
-	yield "\n"
+		result.append(char)
+	
+	# clean up remaining indentation
+	result.append("\n")
 	for i in range(0, indent_level):
-		for c in "<dedent>\t\n":
-			yield c
+		result.append("<dedent>\t\n")
+	
+	return result
 
 class NodesToASTVisitor(RPythonVisitor):
 	"""Converts the nodes from the parser generator into a Swail AST.
@@ -244,6 +245,6 @@ def swail_parser(program_code):
 	This is probably the function you want to use during execution.
 	"""
 	# TODO directly produce rlib.parsing tokens
-	lexed = "".join(list(swail_lexer(program_code)))
+	lexed = "".join(swail_lexer(program_code))
 	nodes = lexed_to_nodes(lexed)
 	return nodes_to_ast(nodes)
