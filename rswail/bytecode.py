@@ -24,6 +24,7 @@ class Instruction:
 	POP = 9 # Pop <arg> values from the stack (0 < arg)
 	DUP = 10 # Duplicate the <arg>th value on the stack (0 < arg < len(stack))
 	CALL = 11 # Pop <arg> arguments, pop function, call function with arguments
+	LOAD_ATTR = 12 # Pop value and push value[names[<arg>]]
 	
 	HCF = 255 # Halt and Catch Fire: should never be implemented
 
@@ -41,6 +42,7 @@ instruction_names = {
 		"pop": Instruction.POP,
 		"dup": Instruction.DUP,
 		"call": Instruction.CALL,
+		"load_attr": Instruction.LOAD_ATTR,
 		
 		"hcf": Instruction.HCF,
 }
