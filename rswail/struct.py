@@ -30,6 +30,7 @@ class StructMember(Value):
 class StructInstance(Value):
 	def __init__(self, name, member, values):
 		assert isinstance(member, StructMember)
+		assert isinstance(values, list)
 		Value.__init__(self, name)
 		self.member = member
 		self.values = values
@@ -65,4 +66,4 @@ def construct(struct, member_name, *args):
 	assert isinstance(member_name, unicode)
 	for value in args:
 		assert isinstance(value, Value)
-	return StructInstance(member_name, struct.members[member_name], args)
+	return StructInstance(member_name, struct.members[member_name], list(args))
