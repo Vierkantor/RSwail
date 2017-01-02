@@ -64,6 +64,7 @@ def construct(struct, member_name, *args):
 	"""
 	assert isinstance(struct, Struct)
 	assert isinstance(member_name, unicode)
-	for value in args:
+	arg_list = list(args)
+	for value in arg_list:
 		assert isinstance(value, Value)
-	return StructInstance(member_name, struct.members[member_name], list(args))
+	return StructInstance(member_name, struct.members[member_name], arg_list)
