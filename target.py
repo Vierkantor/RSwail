@@ -7,8 +7,12 @@ sys.path.append("pypy")
 from rpython.rlib.jit import JitDriver
 from rpython.rlib.rbigint import rbigint
 
+from rswail.ast import Closure, compile_statement
 from rswail.bytecode import Instruction, Program, instruction_names
+from rswail.cons_list import to_list
 from rswail.function import Function
+from rswail.globals import make_globals
+from rswail.parser import swail_parser
 from rswail.value import Integer
 
 jitdriver = JitDriver(greens=['pc', 'program', 'scope'],
@@ -19,15 +23,15 @@ def jitpolicy(driver): # pragma: no cover
 	return JitPolicy()
 
 def parse(program_contents):
+	# parse the program
+	parsed = swail_parser(program_contents)
+
+	# compile the program
 	program = Program()
-	current_block = program.start_block
-	for line in program_contents.split("\n"):
-		if line:
-			instruction, argument = line.split(" ")
-			program.add_instruction(current_block,
-					instruction_names[instruction],
-					int(argument),
-			)
+	block_id = program.start_block
+	globals = Closure()
+	for statement in to_list(parsed):
+		block_id = compile_statement(program, block_id, statement, globals)
 	return program
 
 def mainloop(program, stack=None):
@@ -40,7 +44,8 @@ def mainloop(program, stack=None):
 	"""
 	if stack is None:
 		stack = []
-	local_vars = {}
+	# TODO: distinguish between these things
+	local_vars = make_globals()
 	pc = 0
 	scope = program.get_block(program.start_block)
 	while pc < len(scope.opcodes):
