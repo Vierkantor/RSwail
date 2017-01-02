@@ -98,7 +98,8 @@ def compile_statement(program, block_id, stmt, closure):
 		
 		# store it as a name
 		program.add_instruction(block_id, Instruction.DUP, 1)
-		name_id = program.add_name(block_id, name)
+		assert isinstance(name, String)
+		name_id = program.add_name(block_id, name.value)
 		program.add_instruction(block_id, Instruction.STORE_LOCAL, name_id)
 		closure.make_bound(name)
 		
@@ -131,6 +132,7 @@ def compile_expression(program, block_id, expr, closure):
 		# load the root
 		closure.make_used(root_name)
 		root_id = program.add_name(block_id, root_name)
+		assert isinstance(root_id, int)
 		program.add_instruction(block_id, Instruction.LOAD_LOCAL, root_id)
 		
 		# load its attributes
