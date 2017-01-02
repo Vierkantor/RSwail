@@ -1,5 +1,5 @@
 from rswail.bytecode import Instruction
-from rswail.cons_list import cons_list, to_list
+from rswail.cons_list import cons_list, from_list, to_list
 from rswail.struct import Struct, StructInstance, construct
 from rswail.value import Integer, String, Value
 
@@ -92,7 +92,7 @@ def compile_statement(program, block_id, stmt, closure):
 		name_expr = expr_base_value(name)
 		args_expr = expr_base_value(args)
 		body_expr = expr_base_value(body)
-		call_expr = expr_apply(header_expr, name_expr, args_expr, body_expr)
+		call_expr = expr_apply(header_expr, from_list([name_expr, args_expr, body_expr]))
 		# run the header against the AST
 		block_id = compile_expression(program, block_id, call_expr, closure)
 		
