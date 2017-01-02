@@ -200,7 +200,8 @@ class NodesToASTVisitor(RPythonVisitor):
 		assert len(node.children) == 1
 		value_symbol = node.children[0]
 		if value_symbol.symbol == "LITERAL_INT":
-			return expr_base_value(Integer.from_string(self.dispatch(value_symbol)))
+			decimal = String.from_bytes(value_symbol.token.source)
+			return expr_base_value(Integer.from_string(decimal))
 		else:
 			raise NotImplementedError
 
