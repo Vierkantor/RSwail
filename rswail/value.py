@@ -77,6 +77,10 @@ class Integer(Value):
 	@classmethod
 	def from_decimal(self, value):
 		return Integer(rbigint.fromdecimalstr(value))
+	@classmethod
+	def from_string(self, value):
+		assert isinstance(value, String)
+		return Integer(rbigint.fromdecimalstr(value.value))
 
 	def bool(self):
 		"""Convert integer to boolean.
