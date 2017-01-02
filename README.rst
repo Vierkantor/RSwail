@@ -51,7 +51,7 @@ TL;DR::
 	./swail tests.swa
 
 To compile RSwail, you need to unpack a recent edition of `PyPy
-<http://pypy.org>` into a directory ``pypy`` in the RSwail directory. You
+<http://pypy.org>`_ into a directory ``pypy`` in the RSwail directory. You
 should also add the pypy executable to your search path. If not, you can still
 build RSwail, it just takes painfully long.  Then, install the py.test library
 for Python 2. Before compilation, we run a test suite to make sure RSwail will
