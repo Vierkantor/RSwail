@@ -52,8 +52,9 @@ def extend(list1, list2):
 def from_list(list):
 	"""Convert a Python list to a cons-list."""
 	result = empty()
-	for element in list[::-1]:
-		result = cons(element, result)
+	for neg_index in range(0, len(list)):
+		index = len(list) - neg_index - 1
+		result = cons(list[index], result)
 	return result
 
 def to_list(list):
