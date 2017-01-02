@@ -70,15 +70,15 @@ class Integer(Value):
 		Value.__init__(self, unicode(value.str()))
 		self.value = value
 
-	@classmethod
-	def from_int(self, value):
+	@staticmethod
+	def from_int(value):
 		return Integer(rbigint.fromint(value))
 
-	@classmethod
-	def from_decimal(self, value):
+	@staticmethod
+	def from_decimal(value):
 		return Integer(rbigint.fromdecimalstr(value))
-	@classmethod
-	def from_string(self, value):
+	@staticmethod
+	def from_string(value):
 		assert isinstance(value, String)
 		return Integer(rbigint.fromdecimalstr(value.value))
 
@@ -116,8 +116,8 @@ class String(Value):
 		Value.__init__(self, u'"' + value + u'"')
 		self.value = value
 	
-	@classmethod
-	def from_bytes(self, bytes, encoding="utf-8"):
+	@staticmethod
+	def from_bytes(bytes, encoding="utf-8"):
 		"""Construct a string from an encoded sequence of bytes.
 		
 		Default encoding is utf-8. (TODO: should this always be explicit?)
