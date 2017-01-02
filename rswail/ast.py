@@ -108,6 +108,8 @@ def compile_statement(program, block_id, stmt, closure):
 		(expr,) = stmt.values
 		# return value is the value of the expression
 		return compile_expression(program, block_id, expr, closure)
+	else:
+		raise NotImplementedError
 
 def compile_expression(program, block_id, expr, closure):
 	"""Add code to implement the expression to the given block.
@@ -150,3 +152,5 @@ def compile_expression(program, block_id, expr, closure):
 		value_id = program.add_constant(block_id, value)
 		program.add_instruction(block_id, Instruction.PUSH_CONST, value_id)
 		return block_id
+	else:
+		raise NotImplementedError
