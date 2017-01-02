@@ -32,6 +32,7 @@ class StructMember(Value):
 
 class StructInstance(Value):
 	def __init__(self, name, member, values):
+		assert isinstance(member, StructMember)
 		Value.__init__(self, name)
 		self.member = member
 		self.values = values
