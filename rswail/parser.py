@@ -3,7 +3,8 @@ from rpython.rlib.parsing.parsing import ParseError
 from rpython.rlib.parsing.tree import RPythonVisitor, Symbol
 
 from rswail.ast import statement, expression, expr_name_access, expr_base_value, expr_apply, stmt_declaration, stmt_expression
-from rswail.value import Integer
+from rswail.cons_list import append, cons, empty, extend, singleton
+from rswail.value import Integer, String
 
 """Define Swail's grammar.
 
@@ -109,13 +110,13 @@ class NodesToASTVisitor(RPythonVisitor):
 	def visit___arg_list_rest_0_0(self, node):
 		assert len(node.children) in [1, 2]
 		if len(node.children) == 1:
-			return []
+			return empty()
 		else:
 			return self.dispatch(node.children[0])
 	def visit___file_rest_0_0(self, node):
 		assert len(node.children) in [1, 2]
 		if len(node.children) == 1:
-			return []
+			return empty()
 		else:
 			return self.dispatch(node.children[0])
 	def visit__maybe_symbol2(self, node):
@@ -123,39 +124,39 @@ class NodesToASTVisitor(RPythonVisitor):
 		return self.dispatch(node.children[2])
 	def visit__maybe_symbol4(self, node):
 		assert len(node.children) == 1
-		return [self.dispatch(node.children[0])]
+		return singleton(self.dispatch(node.children[0]))
 	def visit__plus_symbol0(self, node):
 		return None
 	def visit__plus_symbol2(self, node):
 		assert len(node.children) in [2, 3]
-		result = [self.dispatch(node.children[0])]
+		result = singleton(self.dispatch(node.children[0]))
 		if len(node.children) == 3:
 			assert node.children[2].symbol == "_plus_symbol2"
-			result.extend(self.dispatch(node.children[2]))
+			result = extend(result, self.dispatch(node.children[2]))
 		return result
 	def visit__star_symbol1(self, node):
 		assert len(node.children) in [2, 3]
-		result = [self.dispatch(node.children[0])]
+		result = singleton(self.dispatch(node.children[0]))
 		if len(node.children) == 3:
 			assert node.children[2].symbol == "_star_symbol1"
-			result.extend(self.dispatch(node.children[2]))
+			result = extend(result, self.dispatch(node.children[2]))
 		return result
 	def visit__star_symbol3(self, node):
 		assert len(node.children) in [2, 3]
-		result = [self.dispatch(node.children[0])]
+		result = singleton(self.dispatch(node.children[0]))
 		if len(node.children) == 3:
 			assert node.children[2].symbol == "_star_symbol3"
-			result.extend(self.dispatch(node.children[2]))
+			result = extend(result, self.dispatch(node.children[2]))
 		return result
 	def visit__star_symbol5(self, node):
 		assert len(node.children) in [2, 3]
 		# TODO: support other encodings?
 		root_name = self.dispatch(node.children[0])
 		assert isinstance(root_name, Symbol)
-		result = [root_name.token.source.decode("utf-8")]
+		result = singleton(String.from_bytes(root_name.token.source))
 		if len(node.children) == 3:
 			assert node.children[2].symbol == "_star_symbol5"
-			result.extend(self.dispatch(node.children[2]))
+			result = extend(result, self.dispatch(node.children[2]))
 		return result
 
 	def visit_file(self, node):
@@ -170,12 +171,12 @@ class NodesToASTVisitor(RPythonVisitor):
 		return self.dispatch(node.children[0])
 	def visit_declaration(self, node):
 		if len(node.children) == 3:
-			block = []
+			block = empty()
 		else:
 			assert len(node.children) == 4
 			block = self.dispatch(node.children[3])
 		header = self.dispatch(node.children[0])
-		name = self.dispatch(node.children[1])
+		name = String.from_bytes(self.dispatch(node.children[1]).token.source)
 		args = self.dispatch(node.children[2])
 		return stmt_declaration(header, name, args, block)
 	def visit_expression_stmt(self, node):
@@ -193,7 +194,7 @@ class NodesToASTVisitor(RPythonVisitor):
 		return expr_name_access(self.dispatch(node.children[0]))
 	def visit_apply(self, node):
 		assert len(node.children) == 2
-		return expr_apply(self.dispatch(node.children[0]), *self.dispatch(node.children[1]))
+		return expr_apply(self.dispatch(node.children[0]), self.dispatch(node.children[1]))
 	def visit_base_value(self, node):
 		assert len(node.children) == 1
 		value_symbol = node.children[0]
@@ -211,17 +212,17 @@ class NodesToASTVisitor(RPythonVisitor):
 		else:
 			# at least 2 elements in the list
 			result = self.dispatch(node.children[1])
-			result.extend(self.dispatch(node.children[2]))
+			result = extend(result, self.dispatch(node.children[2]))
 			return result
 	def visit_general_name(self, node):
 		assert len(node.children) in [1, 2]
 		if len(node.children) == 2:
 			result = self.dispatch(node.children[0])
 		else:
-			result = []
+			result = empty()
 		assert node.children[-1].symbol == "NAME"
 		# TODO: support other encodings?
-		result.append(node.children[-1].token.source.decode("utf-8"))
+		result = append(result, String.from_bytes(node.children[-1].token.source))
 		return result
 
 def nodes_to_ast(program_nodes):

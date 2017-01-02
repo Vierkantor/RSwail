@@ -3,7 +3,9 @@ from rpython.rlib.parsing.ebnfparse import parse_ebnf, make_parse_function
 from rpython.rlib.parsing.parsing import ParseError
 
 from rswail.ast import statement, expression
+from rswail.cons_list import empty, from_list, index, length, to_list
 from rswail.parser import lexed_to_nodes, nodes_to_ast, swail_parser
+from rswail.value import String
 
 import pytest
 
@@ -30,9 +32,9 @@ def test_parser_sanity():
 
 def test_empty_file():
 	"""Parsing an empty file should succeed and give an empty program."""
-	assert nodes_to_ast(lexed_to_nodes("")) == []
-	assert nodes_to_ast(lexed_to_nodes("\n")) == []
-	assert nodes_to_ast(lexed_to_nodes("\n\n\n")) == []
+	assert nodes_to_ast(lexed_to_nodes("")).eq(empty())
+	assert nodes_to_ast(lexed_to_nodes("\n")).eq(empty())
+	assert nodes_to_ast(lexed_to_nodes("\n\n\n")).eq(empty())
 
 def test_simple_statements():
 	"""Parse a few simple statements."""
@@ -104,26 +106,26 @@ def test_parser():
 def test_general_name_unicode():
 	"""Parsing a general name should give a list with unicode components."""
 	stmts = swail_parser("general.name.with.dots\n")
-	assert len(stmts) == 1
-	stmt = stmts[0]
+	assert length(stmts) == 1
+	stmt = index(stmts, 0)
 	assert stmt.member == statement.members[u"expression"]
 	expr = stmt.values[0]
 	assert expr.member == expression.members[u"name_access"]
-	assert expr.values[0] == [u'general', u'name', u'with', u'dots']
+	assert expr.values[0].eq(from_list(map(String, [u'general', u'name', u'with', u'dots'])))
 
 def test_arg_list():
 	"""Parsing an argument list should give a list of expressions."""
 	stmts = swail_parser("call(arg1, arg2)\n")
-	assert len(stmts) == 1
-	stmt = stmts[0]
+	assert length(stmts) == 1
+	stmt = index(stmts, 0)
 	assert stmt.member == statement.members[u"expression"]
 	expr = stmt.values[0]
 	assert expr.member == expression.members[u"apply"]
 	assert expr.values[0].member == expression.members[u"name_access"]
-	assert expr.values[0].values[0] == [u'call']
-	assert len(expr.values[1]) == 2
-	for arg in expr.values[1]:
+	assert expr.values[0].values[0].eq(from_list([String(u'call')]))
+	assert length(expr.values[1]) == 2
+	for arg in to_list(expr.values[1]):
 		assert arg.member == expression.members[u"name_access"]
-		assert isinstance(arg.values[0], list)
-		for name in arg.values[0]:
-			assert isinstance(name, unicode)
+		name_parts = to_list(arg.values[0])
+		for name in name_parts:
+			assert isinstance(name, String)

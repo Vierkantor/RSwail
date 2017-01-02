@@ -37,6 +37,25 @@ class StructInstance(Value):
 		self.values = values
 		self.set(u"member", member)
 		self.set(u"values", values)
+	def eq(self, other):
+		"""Is this instance equivalent to another?
+		
+		Equivalent instances have the (exact) same member and each value is equivalent.
+		"""
+		if self is other:
+			return True
+		if not isinstance(other, StructInstance):
+			return False
+		if self.member is not other.member:
+			return False
+		if len(self.values) != len(other.values):
+			return False
+		for self_val, other_val in zip(self.values, other.values):
+			assert isinstance(self_val, Value)
+			assert isinstance(other_val, Value)
+			if not self_val.eq(other_val):
+				return False
+		return True
 	def __repr__(self):
 		return repr(self.member) + repr(self.values)
 
@@ -48,4 +67,6 @@ def construct(struct, member_name, *args):
 	"""
 	assert isinstance(struct, Struct)
 	assert isinstance(member_name, unicode)
+	for value in args:
+		assert isinstance(value, Value)
 	return StructInstance(member_name, struct.members[member_name], args)

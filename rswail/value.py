@@ -97,3 +97,41 @@ class Integer(Value):
 
 	def __unicode__(self):
 		return u"<Integer({}) at {}>".format(self.value, id(self))
+
+class String(Value):
+	"""A sequence of Unicode codepoints.
+	
+	Not to be confused with Python 2's sequence of bytes!
+	"""
+	def __init__(self, value):
+		"""Initialize from a Unicode string."""
+		assert isinstance(value, unicode)
+		
+		Value.__init__(self, u'"' + value + u'"')
+		self.value = value
+	
+	@classmethod
+	def from_bytes(self, bytes, encoding="utf-8"):
+		"""Construct a string from an encoded sequence of bytes.
+		
+		Default encoding is utf-8. (TODO: should this always be explicit?)
+		"""
+		return String(bytes.decode(encoding))
+	
+	def bool(self):
+		return self.value != u''
+	
+	def eq(self, other):
+		"""Is this string equivalent to another?
+		
+		As a convenience, also supports equivalence to unicode.
+		"""
+		if isinstance(other, String):
+			return self.value == other.value
+		elif isinstance(other, unicode):
+			return self.value == other
+		else:
+			return False
+	
+	def __unicode__(self):
+		return self.value
