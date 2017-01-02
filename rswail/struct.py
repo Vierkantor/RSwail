@@ -16,6 +16,7 @@ class Struct(Value):
 	def set(self, key, value):
 		assert isinstance(key, unicode)
 		if key in self.members:
+			assert isinstance(value, StructMember)
 			self.members[key] = value
 		else:
 			Value.set(self, key, value)
