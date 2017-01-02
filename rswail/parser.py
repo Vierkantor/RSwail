@@ -1,6 +1,6 @@
 from rpython.rlib.parsing.ebnfparse import parse_ebnf, make_parse_function
 from rpython.rlib.parsing.parsing import ParseError
-from rpython.rlib.parsing.tree import RPythonVisitor
+from rpython.rlib.parsing.tree import RPythonVisitor, Symbol
 
 from rswail.ast import statement, expression, expr_name_access, expr_base_value, expr_apply, stmt_declaration, stmt_expression
 from rswail.value import Integer
@@ -150,7 +150,9 @@ class NodesToASTVisitor(RPythonVisitor):
 	def visit__star_symbol5(self, node):
 		assert len(node.children) in [2, 3]
 		# TODO: support other encodings?
-		result = [self.dispatch(node.children[0]).token.source.decode("utf-8")]
+		root_name = self.dispatch(node.children[0])
+		assert isinstance(root_name, Symbol)
+		result = [root_name.token.source.decode("utf-8")]
 		if len(node.children) == 3:
 			assert node.children[2].symbol == "_star_symbol5"
 			result.extend(self.dispatch(node.children[2]))
