@@ -125,10 +125,12 @@ def compile_expression(program, block_id, expr, closure):
 		assert name.member == cons_list.members[u"cons"]
 		root, tail = name.values
 		assert isinstance(root, String)
+		root_name = root.value
+		assert isinstance(root_name, unicode)
 		
 		# load the root
-		closure.make_used(root.value)
-		root_id = program.add_name(block_id, root.value)
+		closure.make_used(root_name)
+		root_id = program.add_name(block_id, root_name)
 		program.add_instruction(block_id, Instruction.LOAD_LOCAL, root_id)
 		
 		# load its attributes
