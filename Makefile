@@ -28,3 +28,10 @@ swail: test-nojit
 swail-nojit: test-interpreted
 	${PYPY2} pypy/rpython/bin/rpython target.py
 	mv target-c swail-nojit
+
+# Targets for making documentation.
+.PHONY: docs
+docs: docs-html
+.PHONY: docs-html
+docs-html:
+	$(MAKE) -C docs html

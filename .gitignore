@@ -8,3 +8,5 @@ __pycache__
 pypy
 swail
 swail-nojit
+# Compiled documentation
+docs/_build
