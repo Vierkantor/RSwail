@@ -10,3 +10,5 @@ swail
 swail-nojit
 # Compiled documentation
 docs/_build
+# Re-include files named swail in other directories
+!*/swail
