@@ -17,7 +17,6 @@ class NativeFunction(Function):
 	def __init__(self, name, func):
 		Value.__init__(self, name)
 		self.func = func
-		self.set(u"func", self.func)
 	
 	def call(self, arguments):
 		return self.func(arguments)

@@ -12,12 +12,14 @@ class Value:
 		assert isinstance(name, unicode)
 		self.dict = {}
 		self.name = name
-		self.set(u"name", name)
 	def get(self, key):
 		assert isinstance(key, unicode)
+		if key == u"name" and key not in self.dict:
+			return self.name
 		return self.dict[key]
 	def set(self, key, value):
 		assert isinstance(key, unicode)
+		assert isinstance(value, Value)
 		self.key = value
 	def bool(self):
 		"""bool operator.

@@ -8,7 +8,6 @@ class Struct(Value):
 		for key, value in member_dict.items():
 			member = StructMember(self, key, value)
 			self.members[key] = member
-		self.set(u"members", self.members)
 	def get(self, key):
 		assert isinstance(key, unicode)
 		if key in self.members:
@@ -26,9 +25,6 @@ class StructMember(Value):
 		Value.__init__(self, name)
 		self.parent = parent
 		self.fields = fields
-		self.set(u"parent", parent)
-		self.set(u"name", name)
-		self.set(u"fields", fields)
 
 class StructInstance(Value):
 	def __init__(self, name, member, values):
@@ -36,8 +32,6 @@ class StructInstance(Value):
 		Value.__init__(self, name)
 		self.member = member
 		self.values = values
-		self.set(u"member", member)
-		self.set(u"values", values)
 	def eq(self, other):
 		"""Is this instance equivalent to another?
 		
