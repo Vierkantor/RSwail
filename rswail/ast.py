@@ -109,7 +109,7 @@ def compile_statement(program, block_id, stmt, closure):
 		(expr,) = stmt.values
 		# return value is the value of the expression
 		return compile_expression(program, block_id, expr, closure)
-	else:
+	else: # pragma: no cover
 		raise NotImplementedError
 
 def compile_expression(program, block_id, expr, closure):
@@ -156,5 +156,5 @@ def compile_expression(program, block_id, expr, closure):
 		value_id = program.add_constant(block_id, value)
 		program.add_instruction(block_id, Instruction.PUSH_CONST, value_id)
 		return block_id
-	else:
+	else: # pragma: no cover
 		raise NotImplementedError
