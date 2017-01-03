@@ -21,7 +21,7 @@ def cons(head, tail):
 	
 	To add an element to the end, use append.
 	"""
-	assert tail.member.parent == cons_list
+	assert tail.member.parent is cons_list
 	return construct(cons_list, u"cons", head, tail)
 
 def singleton(element):
@@ -33,19 +33,19 @@ def append(list, element):
 	
 	To add an element to the beginning, use cons.
 	"""
-	if list.member == cons_list.members[u"empty"]:
+	if list.member is cons_list.members[u"empty"]:
 		return cons(element, empty())
 	else:
-		assert list.member == cons_list.members[u"cons"]
+		assert list.member is cons_list.members[u"cons"]
 		head, tail = list.values
 		return cons(head, append(tail, element))
 
 def extend(list1, list2):
 	"""Make a list from the elements of list1 succeeded by the elements of list2."""
-	if list1.member == cons_list.members[u"empty"]:
+	if list1.member is cons_list.members[u"empty"]:
 		return list2
 	else:
-		assert list1.member == cons_list.members[u"cons"]
+		assert list1.member is cons_list.members[u"cons"]
 		head, tail = list1.values
 		return cons(head, extend(tail, list2))
 
@@ -60,39 +60,39 @@ def from_list(list):
 def to_list(list):
 	"""Convert a cons-list to a Python list."""
 	result = []
-	while list.member != cons_list.members[u"empty"]:
-		assert list.member == cons_list.members[u"cons"]
+	while list.member is not cons_list.members[u"empty"]:
+		assert list.member is cons_list.members[u"cons"]
 		head, list = list.values
 		result.append(head)
 	return result
 
 def length(list):
 	"""Count the number of elements in the list."""
-	if list.member == cons_list.members[u"empty"]:
+	if list.member is cons_list.members[u"empty"]:
 		return 0
 	else:
-		assert list.member == cons_list.members[u"cons"]
+		assert list.member is cons_list.members[u"cons"]
 		head, tail = list.values
 		return 1 + length(tail)
 
-def index(list, index):
+def index(list, i):
 	"""Get the element at a specified index.
 	
 	Replacement for the [] operator.
 	
-	If index < 0 or index >= length(list), raises an IndexError.
+	If i < 0 or i >= length(list), raises an IndexError.
 	
 	list must be a cons-list instance,
-	index must be an int.
+	i must be an int.
 	"""
-	if index < 0:
+	if i < 0:
 		raise IndexError("negative index in cons-list")
-	if list.member == cons_list.members[u"empty"]:
+	if list.member is cons_list.members[u"empty"]:
 		raise IndexError("too large index in cons-list")
-	assert list.member == cons_list.members[u"cons"]
+	assert list.member is cons_list.members[u"cons"]
 	head, tail = list.values
-	if index == 0:
+	if i == 0:
 		return head
 	else:
-		return index(tail, index-1)
+		return index(tail, i - 1)
 
