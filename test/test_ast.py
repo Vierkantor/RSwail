@@ -2,11 +2,11 @@
 
 import pytest
 
-from rswail.ast import Closure, compile_expression, compile_statement, expr_apply, expr_base_value, expr_from_int, stmt_expression
-from rswail.cons_list import from_list
+from rswail.ast import Closure, compile_expression, compile_statement, expr_apply, expr_base_value, expr_from_int, expr_name_access, stmt_declaration, stmt_expression
+from rswail.cons_list import empty, from_list, singleton
 from rswail.bytecode import Program
 from rswail.function import NativeFunction
-from rswail.value import Integer
+from rswail.value import Integer, String
 from target import mainloop
 
 def test_base_value():
@@ -57,3 +57,19 @@ def test_expression_statement():
 
 	tos = stack[-1]
 	assert tos.eq(37)
+
+def test_declare_and_load():
+	"""Declare a function foo and load it in an expression.
+	
+	Verify that `def is a free variable and `foo is a bound variable.
+	"""
+	program = Program()
+	decl = stmt_declaration(singleton(String(u"def")), String(u"foo"), empty(), empty())
+	expr = expr_name_access(singleton(String(u"foo")))
+	closure = Closure()
+	block_id = compile_statement(program, program.start_block, decl, closure)
+	block_id = compile_statement(program, block_id, stmt_expression(expr), closure)
+
+	assert closure.bound_variables == {u"foo": None}
+	assert closure.used_variables == {u"def": None, u"foo": None}
+	assert closure.get_free_variables() == {u"def": None}

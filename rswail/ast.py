@@ -101,7 +101,7 @@ def compile_statement(program, block_id, stmt, closure):
 		assert isinstance(name, String)
 		name_id = program.add_name(block_id, name.value)
 		program.add_instruction(block_id, Instruction.STORE_LOCAL, name_id)
-		closure.make_bound(name)
+		closure.make_bound(name.value)
 		
 		# return value of the statement is whatever we just stored
 		return block_id
