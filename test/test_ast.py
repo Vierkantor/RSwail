@@ -73,3 +73,18 @@ def test_declare_and_load():
 	assert closure.bound_variables == {u"foo": None}
 	assert closure.used_variables == {u"def": None, u"foo": None}
 	assert closure.get_free_variables() == {u"def": None}
+
+	# TODO: check the program works
+
+def test_load_general_name():
+	"""Compile an expression that loads from a name.with.attributes."""
+	program = Program()
+	expr = expr_name_access(from_list([String(u"foo"), String(u"bar"), String(u"baz")]))
+	closure = Closure()
+	block_id = program.start_block
+	block_id = compile_statement(program, block_id, stmt_expression(expr), closure)
+
+	assert closure.used_variables == {u"foo": None}
+	assert closure.get_free_variables() == {u"foo": None}
+
+	# TODO: check the program works
