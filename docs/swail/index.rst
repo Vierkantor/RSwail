@@ -23,3 +23,10 @@ from Python and Haskell, which you might appreciate if you enjoy that kind of
 languages.  A lot of the language features are explained by analogy to either
 of those languages. However, it does have its own conventions, so you can't
 always translate concepts one-to-one between languages.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Documentation for Swail:
+
+   tutorial/index
+   reference/index
