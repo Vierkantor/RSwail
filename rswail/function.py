@@ -5,7 +5,7 @@ class Function(Value):
 	def __init__(self, name):
 		Value.__init__(self, name)
 	
-	def call(self, arguments):
+	def call(self, arguments): # pragma: no cover
 		"""Call the function with a tuple of arguments.
 		
 		Returns a single Value.
@@ -15,7 +15,7 @@ class Function(Value):
 class NativeFunction(Function):
 	"""Built-in function written in native code."""
 	def __init__(self, name, func):
-		Value.__init__(self, name)
+		Function.__init__(self, name)
 		self.func = func
 	
 	def call(self, arguments):
