@@ -56,7 +56,7 @@ class Value:
 		"""
 		if _strict_operators:
 			raise Exception("using the == operator on objects: use .eq or is")
-		else:
+		else: # pragma: no cover
 			return NotImplemented
 	@not_rpython
 	def __ne__(self, other):
@@ -67,7 +67,7 @@ class Value:
 		"""
 		if _strict_operators:
 			raise Exception("using the != operator on objects: use .eq or is")
-		else:
+		else: # pragma: no cover
 			return NotImplemented
 
 class Unit(Value):
@@ -91,6 +91,19 @@ class Boolean(Value):
 
 	def bool(self):
 		return self.value
+	
+	def eq(self, other):
+		"""Is this boolean equivalent to another?
+		
+		As a convenience, also supports equivalence to bool.
+		(But it won't do the explicit conversion to boolean!)
+		"""
+		if isinstance(other, Boolean):
+			return self.value == other.value
+		elif isinstance(other, bool):
+			return self.value == other
+		else:
+			return False
 
 class Integer(Value):
 	"""A (long) integer."""
@@ -129,10 +142,12 @@ class Integer(Value):
 			return self.value.eq(other.value)
 		elif isinstance(other, int):
 			return self.value.int_eq(other)
-		else:
+		elif isinstance(other, rbigint):
 			return self.value.eq(other)
+		else:
+			return False
 
-	def __unicode__(self):
+	def __unicode__(self): # pragma: no cover
 		return u"<Integer({}) at {}>".format(self.value, id(self))
 
 class String(Value):
@@ -170,5 +185,5 @@ class String(Value):
 		else:
 			return False
 	
-	def __unicode__(self):
+	def __unicode__(self): # pragma: no cover
 		return self.value
