@@ -28,7 +28,7 @@ class Value:
 	def set(self, key, value):
 		assert isinstance(key, unicode)
 		assert isinstance(value, Value)
-		self.key = value
+		self.dict[key] = value
 	def bool(self):
 		"""bool operator.
 		
