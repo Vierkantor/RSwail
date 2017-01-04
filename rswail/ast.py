@@ -20,7 +20,7 @@ def expr_base_value(value):
 	assert isinstance(value, Value)
 	return construct(expression, u"base_value", value)
 def expr_apply(function, args):
-	assert args.member.parent == cons_list
+	assert args.member.parent is cons_list
 	return construct(expression, u"apply", function, args)
 def expr_from_int(value):
 	assert isinstance(value, int)
@@ -123,7 +123,7 @@ def compile_expression(program, block_id, expr, closure):
 	if expr.member.name == u"name_access":
 		# get the root and all its attributes
 		(name,) = expr.values
-		assert name.member == cons_list.members[u"cons"]
+		assert name.member is cons_list.members[u"cons"]
 		root, tail = name.values
 		assert isinstance(root, String)
 		root_name = root.value
@@ -136,12 +136,12 @@ def compile_expression(program, block_id, expr, closure):
 		program.add_instruction(block_id, Instruction.LOAD_LOCAL, root_id)
 		
 		# load its attributes
-		while tail.member == cons_list.members[u"cons"]:
+		while tail.member is cons_list.members[u"cons"]:
 			attr, tail = tail.values
 			assert isinstance(attr, String)
 			attr_id = program.add_name(block_id, attr.value)
 			program.add_instruction(block_id, Instruction.LOAD_ATTR, attr_id)
-		assert tail.member == cons_list.members[u"empty"]
+		assert tail.member is cons_list.members[u"empty"]
 		return block_id
 	elif expr.member.name == u"apply":
 		(function_expr, arg_exprs) = expr.values

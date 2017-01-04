@@ -108,9 +108,9 @@ def test_general_name_unicode():
 	stmts = swail_parser("general.name.with.dots\n")
 	assert length(stmts) == 1
 	stmt = index(stmts, 0)
-	assert stmt.member == statement.members[u"expression"]
+	assert stmt.member is statement.members[u"expression"]
 	expr = stmt.values[0]
-	assert expr.member == expression.members[u"name_access"]
+	assert expr.member is expression.members[u"name_access"]
 	assert expr.values[0].eq(from_list(map(String, [u'general', u'name', u'with', u'dots'])))
 
 def test_arg_list():
@@ -118,14 +118,14 @@ def test_arg_list():
 	stmts = swail_parser("call(arg1, arg2)\n")
 	assert length(stmts) == 1
 	stmt = index(stmts, 0)
-	assert stmt.member == statement.members[u"expression"]
+	assert stmt.member is statement.members[u"expression"]
 	expr = stmt.values[0]
-	assert expr.member == expression.members[u"apply"]
-	assert expr.values[0].member == expression.members[u"name_access"]
+	assert expr.member is expression.members[u"apply"]
+	assert expr.values[0].member is expression.members[u"name_access"]
 	assert expr.values[0].values[0].eq(from_list([String(u'call')]))
 	assert length(expr.values[1]) == 2
 	for arg in to_list(expr.values[1]):
-		assert arg.member == expression.members[u"name_access"]
+		assert arg.member is expression.members[u"name_access"]
 		name_parts = to_list(arg.values[0])
 		for name in name_parts:
 			assert isinstance(name, String)
