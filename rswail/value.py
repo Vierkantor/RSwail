@@ -23,7 +23,7 @@ class Value:
 	def get(self, key):
 		assert isinstance(key, unicode)
 		if key == u"name" and key not in self.dict:
-			return self.name
+			return String(self.name)
 		return self.dict[key]
 	def set(self, key, value):
 		assert isinstance(key, unicode)
