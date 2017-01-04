@@ -2,6 +2,7 @@
 branch = True
 omit =
 	pypy/*
+	conftest.py
 
 [report]
 # Regexes for lines to exclude from consideration

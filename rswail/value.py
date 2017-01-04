@@ -1,4 +1,12 @@
+from rpython.rlib.objectmodel import not_rpython
 from rpython.rlib.rbigint import rbigint
+
+"""When set to True, built-in Python operators on Values will raise.
+
+We enable this during pytest runs to make sure operators don't accidentally
+get overloaded in Python and fail in RPython.
+"""
+_strict_operators = False
 
 class Value:
 	"""Swail's base type.
@@ -38,6 +46,29 @@ class Value:
 		As with all operators, returns a native value.
 		"""
 		return self is other
+
+	@not_rpython
+	def __eq__(self, other):
+		"""Throws an error.
+		
+		RPython doesn't support overriding the == operator,
+		so we should catch any accidental usage in the test cases.
+		"""
+		if _strict_operators:
+			raise Exception("using the == operator on objects: use .eq or is")
+		else:
+			return NotImplemented
+	@not_rpython
+	def __ne__(self, other):
+		"""Throws an error during testing.
+		
+		RPython doesn't support overriding the != operator,
+		so we should catch any accidental usage in the test cases.
+		"""
+		if _strict_operators:
+			raise Exception("using the != operator on objects: use .eq or is")
+		else:
+			return NotImplemented
 
 class Unit(Value):
 	"""The unit value, of which there is exactly one."""
