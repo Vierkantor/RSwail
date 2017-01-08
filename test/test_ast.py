@@ -7,7 +7,7 @@ from rswail.cons_list import empty, from_list, singleton
 from rswail.bytecode import Program
 from rswail.function import NativeFunction
 from rswail.value import Integer, String
-from target import mainloop
+from target import start_execution
 
 def test_base_value():
 	"""Load a base value in an expression."""
@@ -16,7 +16,7 @@ def test_base_value():
 	closure = Closure()
 	compile_expression(program, program.start_block, expr, closure)
 
-	stack = mainloop(program)
+	stack = start_execution(program)
 
 	tos = stack[-1]
 	assert tos.eq(37)
@@ -37,7 +37,7 @@ def test_function_call():
 	closure = Closure()
 	block_id = compile_expression(program, program.start_block, call_expr, closure)
 
-	stack = mainloop(program)
+	stack = start_execution(program)
 	tos = stack[-1]
 
 	assert tos.eq(37)
@@ -53,7 +53,7 @@ def test_expression_statement():
 	closure = Closure()
 	compile_statement(program, program.start_block, stmt, closure)
 
-	stack = mainloop(program)
+	stack = start_execution(program)
 
 	tos = stack[-1]
 	assert tos.eq(37)

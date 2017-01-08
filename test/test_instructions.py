@@ -5,17 +5,17 @@ import pytest
 from rswail.bytecode import Instruction, Program
 from rswail.function import NativeFunction
 from rswail.value import Integer
-from target import mainloop
+from target import start_execution
 
 def test_empty_program():
 	"""The main loop should accept empty programs."""
-	mainloop(Program())
+	start_execution(Program())
 
 def test_nop_program():
 	"""A program with a NOP instruction should also work."""
 	program = Program()
 	program.add_instruction(program.start_block, Instruction.NOP)
-	mainloop(program)
+	start_execution(program)
 
 def test_hello_instr(capsys):
 	"""The hello world instruction should output exactly this string:
@@ -24,7 +24,7 @@ def test_hello_instr(capsys):
 	program = Program()
 	program.add_instruction(program.start_block, Instruction.HELLO)
 
-	mainloop(program)
+	start_execution(program)
 	out, err = capsys.readouterr()
 	assert out == u"Hello, World!\n"
 
@@ -34,7 +34,7 @@ def test_push_int_instr():
 	# push an arbitrary integer
 	program.add_instruction(program.start_block, Instruction.PUSH_INT, 37)
 
-	stack = mainloop(program)
+	stack = start_execution(program)
 
 	tos = stack[-1]
 	assert tos.eq(37)
@@ -45,7 +45,7 @@ def test_invalid_instr():
 	program.add_instruction(program.start_block, Instruction.HCF)
 
 	with pytest.raises(NotImplementedError):
-		mainloop(program)
+		start_execution(program)
 
 def test_jump_instr():
 	"""Jump to another part in the code."""
@@ -58,7 +58,7 @@ def test_jump_instr():
 	# and push an int
 	program.add_instruction(block2, Instruction.PUSH_INT, 37)
 
-	stack = mainloop(program)
+	stack = start_execution(program)
 
 	tos = stack[-1]
 	assert tos.eq(37)
@@ -78,7 +78,7 @@ def test_jump_if_instr():
 	program.add_instruction(block3, Instruction.PUSH_INT, 3)
 
 	# Since 0 is on top, we jump second.
-	stack = mainloop(program, [Integer.from_int(1), Integer.from_int(0)])
+	stack = start_execution(program, [Integer.from_int(1), Integer.from_int(0)])
 
 	tos = stack[-1]
 	assert tos.eq(3)
@@ -94,7 +94,7 @@ def test_push_const_instr():
 	program.add_instruction(program.start_block, Instruction.PUSH_CONST, const)
 	program.add_instruction(program.start_block, Instruction.PUSH_INT, 37)
 
-	stack = mainloop(program, [Integer.from_int(37)])
+	stack = start_execution(program, [Integer.from_int(37)])
 
 	tos = stack[-1]
 	sos = stack[-2]
@@ -110,7 +110,7 @@ def test_write_instr(capsys):
 	program.add_instruction(program.start_block, Instruction.PUSH_CONST, const)
 	program.add_instruction(program.start_block, Instruction.WRITE)
 
-	mainloop(program)
+	start_execution(program)
 	out, err = capsys.readouterr()
 	# we should get a representation of the int and a newline
 	assert out == repr(value) + "\n"
@@ -123,7 +123,7 @@ def test_store_load_local():
 	program.add_instruction(program.start_block, Instruction.STORE_LOCAL, var_id)
 	program.add_instruction(program.start_block, Instruction.LOAD_LOCAL, var_id)
 
-	stack = mainloop(program, [Integer.from_int(37)])
+	stack = start_execution(program, [Integer.from_int(37)])
 
 	tos = stack[-1]
 	assert tos.eq(37)
@@ -133,7 +133,7 @@ def test_pop_single():
 	program = Program()
 	program.add_instruction(program.start_block, Instruction.POP, 1)
 
-	stack = mainloop(program, [Integer.from_int(1), Integer.from_int(2)])
+	stack = start_execution(program, [Integer.from_int(1), Integer.from_int(2)])
 	tos = stack[-1]
 
 	assert tos.eq(1)
@@ -147,7 +147,7 @@ def test_pop_multiple():
 	for i in range(1, 7):
 		stack.append(Integer.from_int(i))
 
-	stack = mainloop(program, stack)
+	stack = start_execution(program, stack)
 	tos = stack[-1]
 
 	# 1 2 3 4 5 6 -> 1 2
@@ -158,7 +158,7 @@ def test_pop_overflow():
 	program = Program()
 	program.add_instruction(program.start_block, Instruction.POP, 4)
 
-	stack = mainloop(program, [Integer.from_int(1), Integer.from_int(2)])
+	stack = start_execution(program, [Integer.from_int(1), Integer.from_int(2)])
 
 	assert len(stack) == 0
 
@@ -167,7 +167,7 @@ def test_dup_top():
 	program = Program()
 	program.add_instruction(program.start_block, Instruction.DUP, 1)
 
-	stack = mainloop(program, [Integer.from_int(1), Integer.from_int(2)])
+	stack = start_execution(program, [Integer.from_int(1), Integer.from_int(2)])
 	tos = stack[-1]
 	sos = stack[-2]
 
@@ -183,7 +183,7 @@ def test_dup_deeper():
 	for i in range(1, 7):
 		stack.append(Integer.from_int(i))
 
-	stack = mainloop(program, stack)
+	stack = start_execution(program, stack)
 	tos = stack[-1]
 
 	assert tos.eq(3)
@@ -198,7 +198,7 @@ def test_call_noargs():
 	program.add_instruction(program.start_block, Instruction.PUSH_CONST, func_id)
 	program.add_instruction(program.start_block, Instruction.CALL, 0)
 
-	stack = mainloop(program)
+	stack = start_execution(program)
 	tos = stack[-1]
 
 	assert tos.eq(37)
@@ -224,7 +224,7 @@ def test_call_args():
 	program.add_instruction(program.start_block, Instruction.PUSH_INT, 5)
 	program.add_instruction(program.start_block, Instruction.CALL, 5)
 
-	stack = mainloop(program)
+	stack = start_execution(program)
 	tos = stack[-1]
 
 	assert tos.eq(37)

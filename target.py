@@ -23,23 +23,13 @@ import sys
 # TODO: we should be able to do this better
 # e.g. without manipulating the python path
 sys.path.append("pypy")
-from rpython.rlib.jit import JitDriver
-from rpython.rlib.rbigint import rbigint
 
 from rswail.ast import Closure, compile_statement
-from rswail.bytecode import Instruction, Program, instruction_names
+from rswail.bytecode import Program
 from rswail.cons_list import to_list
-from rswail.function import Function
+from rswail.execute import main_loop
 from rswail.globals import make_globals
 from rswail.parser import swail_parser
-from rswail.value import Integer
-
-jitdriver = JitDriver(greens=['pc', 'program', 'scope'],
-		reds=['stack', 'local_vars'])
-
-def jitpolicy(driver): # pragma: no cover
-	from rpython.jit.codewriter.policy import JitPolicy
-	return JitPolicy()
 
 def parse(program_contents):
 	# parse the program
@@ -53,7 +43,7 @@ def parse(program_contents):
 		block_id = compile_statement(program, block_id, statement, globals)
 	return program
 
-def mainloop(program, stack=None):
+def start_execution(program, stack=None):
 	"""Run the program from its starting block.
 	
 	If the stack isn't left None, it should support .append() and .pop() methods.
@@ -65,75 +55,7 @@ def mainloop(program, stack=None):
 		stack = []
 	# TODO: distinguish between these things
 	local_vars = make_globals()
-	pc = 0
-	scope = program.get_block(program.start_block)
-	while pc < len(scope.opcodes):
-		# tell JIT that we've merged multiple execution flows
-		jitdriver.jit_merge_point(program=program, scope=scope, pc=pc,
-				stack=stack, local_vars=local_vars)
-
-		opcode = scope.opcodes[pc]
-		argument = scope.arguments[pc]
-		if opcode == Instruction.NOP:
-			pass
-		elif opcode == Instruction.HELLO:
-			print("Hello, World!")
-		elif opcode == Instruction.PUSH_INT:
-			stack.append(Integer(rbigint.fromint(argument)))
-		elif opcode == Instruction.WRITE:
-			print(stack.pop())
-		elif opcode == Instruction.JUMP:
-			assert argument >= 0
-			label = scope.labels[argument]
-			assert isinstance(label, int)
-			scope = program.get_block(label)
-			pc = 0
-			# don't increment the program counter!
-			continue
-		elif opcode == Instruction.JUMP_IF:
-			tos = stack.pop()
-			assert argument >= 0
-			if tos.bool():
-				label = scope.labels[argument]
-				assert isinstance(label, int)
-				scope = program.get_block(label)
-				pc = 0
-				# don't increment the program counter!
-				continue
-		elif opcode == Instruction.PUSH_CONST:
-			stack.append(scope.constants[argument])
-		elif opcode == Instruction.LOAD_LOCAL:
-			name = scope.names[argument]
-			assert isinstance(name, unicode)
-			stack.append(local_vars[name])
-		elif opcode == Instruction.STORE_LOCAL:
-			name = scope.names[argument]
-			assert isinstance(name, unicode)
-			local_vars[name] = stack.pop()
-		elif opcode == Instruction.POP:
-			if argument >= len(stack):
-				stack = []
-			else:
-				new_length = len(stack) - argument
-				# help rpython out with basic arithmetic
-				# so it knows the stack is nonempty
-				assert new_length > 0
-				stack = stack[:new_length]
-		elif opcode == Instruction.DUP:
-			assert 0 < argument < len(stack)
-			stack.append(stack[-argument])
-		elif opcode == Instruction.CALL:
-			function_pos = len(stack) - argument - 1
-			assert 0 <= function_pos < len(stack)
-			function = stack[function_pos]
-			arguments = stack[function_pos+1:]
-			stack = stack[:function_pos]
-			assert isinstance(function, Function)
-			stack.append(function.call(arguments))
-		else:
-			raise NotImplementedError
-		pc += 1
-	return stack
+	return main_loop(program, program.start_block, stack, local_vars)
 
 def run(fp):
 	program_contents = ""
@@ -144,7 +66,7 @@ def run(fp):
 		program_contents += read
 	os.close(fp)
 	program = parse(program_contents)
-	mainloop(program)
+	start_execution(program)
 
 def entry_point(argv):
 	try:
