@@ -1,0 +1,13 @@
+def id(x):
+	x
+
+def const(x, y):
+	x
+
+def apply(f, x):
+	f(x)
+
+def compose(f, g):
+	def composed(x):
+		f(g(x))
+	composed

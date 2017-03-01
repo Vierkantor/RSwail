@@ -184,19 +184,77 @@ def test_dup_deeper():
 		stack.append(Integer.from_int(i))
 
 	stack = start_execution(program, stack)
-	tos = stack[-1]
 
-	assert tos.eq(3)
+	for i, n in enumerate([1, 2, 3, 4, 5, 6, 3]):
+		assert stack[i].eq(n)
+
+def test_dup_bottom():
+	"""Duplicate a value which is stored on the bottom of the stack."""
+	program = Program()
+	program.add_instruction(program.start_block, Instruction.DUP, 6)
+
+	stack = []
+	for i in range(1, 7):
+		stack.append(Integer.from_int(i))
+
+	stack = start_execution(program, stack)
+
+	for i, n in enumerate([1, 2, 3, 4, 5, 6, 1]):
+		assert stack[i].eq(n)
+
+def test_swap_top():
+	"""Swap the top value on the stack."""
+	program = Program()
+	program.add_instruction(program.start_block, Instruction.SWAP, 1)
+
+	stack = start_execution(program, [Integer.from_int(1), Integer.from_int(2)])
+	tos = stack[-1]
+	sos = stack[-2]
+
+	assert tos.eq(2)
+	assert sos.eq(1)
+
+def test_swap_deeper():
+	"""Swap a value which is stored deeper in the stack."""
+	program = Program()
+	program.add_instruction(program.start_block, Instruction.SWAP, 4)
+
+	stack = []
+	for i in range(1, 7):
+		stack.append(Integer.from_int(i))
+
+	stack = start_execution(program, stack)
+
+	for i, n in enumerate([1, 2, 4, 5, 6, 3]):
+		assert stack[i].eq(n)
+
+def test_swap_bottom():
+	"""Swap a value which is stored on the bottom of the stack."""
+	program = Program()
+	program.add_instruction(program.start_block, Instruction.SWAP, 6)
+
+	stack = []
+	for i in range(1, 7):
+		stack.append(Integer.from_int(i))
+
+	stack = start_execution(program, stack)
+
+	for i, n in enumerate([2, 3, 4, 5, 6, 1]):
+		assert stack[i].eq(n)
 
 def test_call_noargs():
 	"""Call a function without any arguments."""
 	program = Program()
+	block_id = program.start_block
+
 	def func(args):
 		assert len(args) == 0
 		return Integer.from_int(37)
-	func_id = program.add_constant(program.start_block, NativeFunction(u"func", func))
-	program.add_instruction(program.start_block, Instruction.PUSH_CONST, func_id)
-	program.add_instruction(program.start_block, Instruction.CALL, 0)
+	func_id = program.add_constant(block_id, NativeFunction(u"func", func))
+
+	program.add_instruction(block_id, Instruction.PUSH_CONST, func_id)
+	program.add_instruction(block_id, Instruction.CALL, 0)
+	block_id = program.make_next_block(block_id)
 
 	stack = start_execution(program)
 	tos = stack[-1]
@@ -206,6 +264,8 @@ def test_call_noargs():
 def test_call_args():
 	"""Call a function with a given number of arguments."""
 	program = Program()
+	block_id = program.start_block
+
 	def func(args):
 		assert len(args) == 5
 		assert args[0].eq(1)
@@ -214,15 +274,17 @@ def test_call_args():
 		assert args[3].eq(4)
 		assert args[4].eq(5)
 		return Integer.from_int(37)
-	func_id = program.add_constant(program.start_block, NativeFunction(u"func", func))
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 6)
-	program.add_instruction(program.start_block, Instruction.PUSH_CONST, func_id)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 1)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 2)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 3)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 4)
-	program.add_instruction(program.start_block, Instruction.PUSH_INT, 5)
-	program.add_instruction(program.start_block, Instruction.CALL, 5)
+	func_id = program.add_constant(block_id, NativeFunction(u"func", func))
+
+	program.add_instruction(block_id, Instruction.PUSH_INT, 6)
+	program.add_instruction(block_id, Instruction.PUSH_CONST, func_id)
+	program.add_instruction(block_id, Instruction.PUSH_INT, 1)
+	program.add_instruction(block_id, Instruction.PUSH_INT, 2)
+	program.add_instruction(block_id, Instruction.PUSH_INT, 3)
+	program.add_instruction(block_id, Instruction.PUSH_INT, 4)
+	program.add_instruction(block_id, Instruction.PUSH_INT, 5)
+	program.add_instruction(block_id, Instruction.CALL, 5)
+	block_id = program.make_next_block(block_id)
 
 	stack = start_execution(program)
 	tos = stack[-1]

@@ -41,21 +41,23 @@ def parse(program_contents):
 	globals = Closure()
 	for statement in to_list(parsed):
 		block_id = compile_statement(program, block_id, statement, globals)
-	return program
+	return program, globals
 
-def start_execution(program, stack=None):
+def start_execution(program, stack=None, global_closure=None):
 	"""Run the program from its starting block.
 	
 	If the stack isn't left None, it should support .append() and .pop() methods.
 	(e.g. a regular Python list would work)
+	
+	The globals closure is used to instantiate the global variables.
+	If it is left None, the program cannot use any global variables.
 	
 	Returns the stack after execution.
 	"""
 	if stack is None:
 		stack = []
 	# TODO: distinguish between these things
-	local_vars = make_globals()
-	return main_loop(program, program.start_block, stack, local_vars)
+	return main_loop(program, program.start_block, stack)
 
 def run(fp):
 	program_contents = ""
@@ -65,8 +67,8 @@ def run(fp):
 			break
 		program_contents += read
 	os.close(fp)
-	program = parse(program_contents)
-	start_execution(program)
+	program, globals = parse(program_contents)
+	start_execution(program, stack=None, global_closure=globals)
 
 def entry_point(argv):
 	try:

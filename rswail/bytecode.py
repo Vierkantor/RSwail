@@ -1,5 +1,6 @@
 from rpython.rtyper.lltypesystem.lltype import Array, Unsigned
 
+from rswail.closure import Closure
 from rswail.value import Unit, Value
 
 class Instruction:
@@ -22,9 +23,11 @@ class Instruction:
 	LOAD_LOCAL = 7 # Push locals[names[<arg>]]
 	STORE_LOCAL = 8 # Pop and write to locals[names[<arg>]]
 	POP = 9 # Pop <arg> values from the stack (0 < arg)
-	DUP = 10 # Duplicate the <arg>th value on the stack (0 < arg < len(stack))
+	DUP = 10 # Duplicate the <arg>th value on the stack (0 < arg <= len(stack))
 	CALL = 11 # Pop <arg> arguments, pop function, call function with arguments
 	LOAD_ATTR = 12 # Pop value and push value[names[<arg>]]
+	JUMP_LABEL = 13 # Pop <arg>th value on the stack and jump to the labeled block
+	SWAP = 14 # Move the <arg>th value on the stack to TOS (0 < arg <= len(stack))
 	
 	HCF = 255 # Halt and Catch Fire: should never be implemented
 
@@ -43,6 +46,8 @@ instruction_names = {
 		"dup": Instruction.DUP,
 		"call": Instruction.CALL,
 		"load_attr": Instruction.LOAD_ATTR,
+		"jump_label": Instruction.JUMP_LABEL,
+		"swap": Instruction.SWAP,
 		
 		"hcf": Instruction.HCF,
 }
@@ -50,6 +55,13 @@ instruction_names = {
 class TooManyItemsError(Exception):
 	"""Raised when a block contains too many local items, e.g. labels."""
 	pass
+
+"""An invalid block id.
+
+Whenever a jump is executed to this block id, an error occurs.
+Flags cases like returning in a block that doesn't expect return values.
+"""
+INVALID_BLOCK = -1
 
 class Block:
 	"""The smallest grouping of code, with labels and constants."""
@@ -86,6 +98,9 @@ class Block:
 		Each name should be used for an instruction.
 		"""
 		self.names = [u''] # TODO: better type hinting
+		
+		"""The block id to jump to after this block finishes execution."""
+		self.next_block_id = INVALID_BLOCK # TODO: better type hinting
 	
 	def add_constant(self, value):
 		"""Add a constant to this block.
@@ -118,8 +133,15 @@ class Block:
 		Returns the id of the name.
 		"""
 		assert isinstance(name, unicode)
+		# don't waste too much space on non-unique names
+		if name in self.names:
+			return self.names.index(name)
 		self.names.append(name)
 		return len(self.names) - 1
+
+	def pretty_print(self): # pragma: no cover
+		"""Format this object into a human-readable (python) string."""
+		return u"block {}".format(list(zip(self.opcodes, self.arguments)))
 
 class Program:
 	"""Defines the full program, with blocks and initialization."""
@@ -167,3 +189,17 @@ class Program:
 	def get_block(self, block_id):
 		"""Get the block object from its id."""
 		return self.blocks[block_id]
+
+	def set_next_block_id(self, block_id, next_block_id):
+		"""Set the block id to jump to after this block finishes execution."""
+		self.blocks[block_id].next_block_id = next_block_id
+	
+	def make_next_block(self, block_id):
+		"""Go to a new block after the given one finishes.
+		
+		Makes a new block and sets the next block id.
+		Returns the id of the newly created block.
+		"""
+		next_block_id = self.new_block()
+		self.set_next_block_id(block_id, next_block_id)
+		return next_block_id

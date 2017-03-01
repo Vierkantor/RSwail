@@ -70,9 +70,9 @@ def test_declare_and_load():
 	block_id = compile_statement(program, program.start_block, decl, closure)
 	block_id = compile_statement(program, block_id, stmt_expression(expr), closure)
 
-	assert closure.bound_variables == {u"foo": None}
-	assert closure.used_variables == {u"def": None, u"foo": None}
-	assert closure.get_free_variables() == {u"def": None}
+	assert sorted(closure.bound_variables.keys()) == [u"foo"]
+	assert sorted(closure.used_variables.keys()) == [u"def", u"foo"]
+	assert sorted(closure.get_free_variables().keys()) == [u"def"]
 
 	# TODO: check the program works
 
@@ -84,7 +84,7 @@ def test_load_general_name():
 	block_id = program.start_block
 	block_id = compile_statement(program, block_id, stmt_expression(expr), closure)
 
-	assert closure.used_variables == {u"foo": None}
-	assert closure.get_free_variables() == {u"foo": None}
+	assert sorted(closure.used_variables.keys()) == [u"foo"]
+	assert sorted(closure.get_free_variables().keys()) == [u"foo"]
 
 	# TODO: check the program works

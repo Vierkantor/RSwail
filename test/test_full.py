@@ -18,6 +18,11 @@ def test_hello_file(capsys):
 	out, err = capsys.readouterr()
 	assert out == u"Hello, World!\n"
 
+def test_define_functions():
+	"""Define some useful functions."""
+	exit_code = entry_point(["swail", "example/define-functions.swa"])
+	assert exit_code == 0
+
 def test_builtin_tests():
 	"""The builtin tests should run successfully."""
 	assert entry_point(["swail", "tests.swa"]) == 0

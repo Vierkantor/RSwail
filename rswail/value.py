@@ -187,3 +187,22 @@ class String(Value):
 	
 	def __unicode__(self): # pragma: no cover
 		return self.value
+
+class Label(Value):
+	"""A value that RSwail uses internally to indicate values in the code.
+	
+	Can e.g. be used for indicating return blocks during function calls.
+	"""
+	def __init__(self, value):
+		assert isinstance(value, int)
+		Value.__init__(self, u":" + unicode(str(value)))
+		self.value = value
+
+	def get_value(self):
+		"""Get the id stored in the label.
+		
+		Used as a workaround for a cyclic dependency in RPython's graph.
+		(It can't statically determine self.value gets initialized,
+		but it can detect this method exists.)
+		"""
+		return self.value
