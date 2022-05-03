@@ -10,9 +10,11 @@
 	|   /\__ \ V  V / _` | | |
 	|_|_\|___/\_/\_/\__,_|_|_|
 
-RSwail is an implementation of the perpetually-being-redeveloped-language Swail.
-Here, you can find documentation for the language Swail and for the Swail
+RSwail is a very very old implementation of the perpetually-being-redeveloped-language Swail.
+Here, you can find documentation for an old edition of the language Swail and for the Swail
 implementation called RSwail.
+
+5 years later, Swail is now a part of the operating system XukutOS, with more up to date documentation available at gemini://vierkantor.com/xukut/manual/swail.gmi
 
 .. toctree::
    :maxdepth: 2
