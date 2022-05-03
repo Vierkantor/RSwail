@@ -5,7 +5,9 @@
 	|   /\__ \ V  V / _` | | |
 	|_|_\|___/\_/\_/\__,_|_|_|
 
-RSwail is an implementation of the perpetually-being-redeveloped-language Swail.
+RSwail is a very very old implementation of the perpetually-being-redeveloped-language Swail.
+
+5 years later, Swail is now a part of the operating system XukutOS, with more up to date documentation available at gemini://vierkantor.com/xukut/manual/swail.gmi
 
 This implementation is being written in RPython because it should automate most
 boring details of actually generating code, allowing us to just implement
